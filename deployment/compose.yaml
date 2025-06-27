@@ -78,10 +78,26 @@ services:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-0:9092
       - KAFKA_CLUSTERS_0_NAME=kraft
 
-  app:
+  app-1:
     build:
       context: ../
       dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+
+  app-2:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
     depends_on:
       kafka-0:
         condition: service_healthy
@@ -94,6 +110,3 @@ volumes:
   kafka_0_data:
   kafka_1_data:
   kafka_2_data:
-
-# create topic
-# docker compose exec -it kafka-0 opt/bitnami/kafka/bin/kafka-topics.sh --create --topic my_topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
