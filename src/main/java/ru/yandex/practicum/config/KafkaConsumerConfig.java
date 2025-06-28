@@ -42,9 +42,9 @@ public class KafkaConsumerConfig {
     @Bean
     ConsumerFactory<String, Object> batchConsumerFactory() {
         Map<String, Object> config = prepareCommonConsumerConfig("batch-group");
-        config.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1500);
-        config.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 10000);
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        config.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1500);  // минимальный объём данных (в байтах), который консьюмер должен получить за один запрос к брокеру
+        config.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 10000); // максимальное время ожидания для получения данных от брокера
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // отключает автоматический коммит оффсетов (для батч консьюмера)
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
@@ -53,9 +53,9 @@ public class KafkaConsumerConfig {
     ConcurrentKafkaListenerContainerFactory<String, Object> batchKafkaListenerContainerFactory(@Qualifier("batchConsumerFactory") ConsumerFactory<String, Object> batchConsumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(batchConsumerFactory);
-        factory.setBatchListener(true);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.setConcurrency(1);
+        factory.setBatchListener(true);  // включает батч режим (для получения пачки сообщений)
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE); // режим для немедлеменного ручного коммита оффсетов
+        factory.setConcurrency(1);  // однопоточный режим
 
         return factory;
     }
@@ -64,12 +64,12 @@ public class KafkaConsumerConfig {
     private Map<String, Object> prepareCommonConsumerConfig(String groupId) {
         Map<String, Object> config = new HashMap<>();
 
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServices);
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, trustedPackages);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServices); // сервера брокеров
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class); // десериализация ключа
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class); // десериализатор для обработки ошибок, возникающих при десериализации сообщений
+        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);  // десериализация велью
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, trustedPackages); // список доверенных пакетов, из которых разрешено десериализовать объекты
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId); // айди консьюмер группы
 
         return config;
     }

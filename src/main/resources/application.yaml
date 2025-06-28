@@ -4,8 +4,8 @@ spring:
   kafka:
     bootstrap-servers: kafka-0:9094, kafka-1:9095, kafka-2:9096
     producer:
-      asks: all
-      retries: 3
+      asks: all # количество реплик, которые должны подтвердить синхронизацию
+      retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:

@@ -29,6 +29,7 @@ public class KafkaTopicConfig {
         return TopicBuilder.name(productTopicName)
                 .partitions(productTopicPartitions)
                 .replicas(productTopicReplicas)
+                // минимальное количество реплик, которые должны быть в синхронизации, прежде чем запись будет считаться успешной
                 .configs(Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas))
                 .build();
     }
