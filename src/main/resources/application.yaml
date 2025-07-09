@@ -2,19 +2,35 @@ spring:
   application:
     name: yandex-kafka
   kafka:
-    bootstrap-servers: kafka-0:9094, kafka-1:9095, kafka-2:9096
+    bootstrap-servers: kafka-0:9094
+#    , kafka-1:9095, kafka-2:9096
     producer:
       asks: all # количество реплик, которые должны подтвердить синхронизацию
       retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      group-id: filtered-message
       properties:
-        spring.json.trusted.packages: "ru.yandex.practicum.*"
+        spring.json.trusted.packages: "ru.yandex.practicum.model.*"
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
-product:
-  topic:
-    name: create-product-topic
+topic:
+  messages:
+    name: messages
     partitions: 3
     replicas: 2
     min-insync-replicas: 2
+  filtered-messages:
+    name: filtered-messages-topic
+    partitions: 3
+    replicas: 2
+    min-insync-replicas: 2
+  blocked-users:
+    name: blocked_users
+    partitions: 3
+    replicas: 2
+    min-insync-replicas: 2
+
