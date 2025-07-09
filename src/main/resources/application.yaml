@@ -2,8 +2,7 @@ spring:
   application:
     name: yandex-kafka
   kafka:
-    bootstrap-servers: kafka-0:9094
-#    , kafka-1:9095, kafka-2:9096
+    bootstrap-servers: kafka-0:9094, kafka-1:9095, kafka-2:9096
     producer:
       asks: all # количество реплик, которые должны подтвердить синхронизацию
       retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
@@ -19,7 +18,7 @@ spring:
 
 topic:
   messages:
-    name: messages
+    name: messages-topic
     partitions: 3
     replicas: 2
     min-insync-replicas: 2
@@ -29,7 +28,7 @@ topic:
     replicas: 2
     min-insync-replicas: 2
   blocked-users:
-    name: blocked_users
+    name: blocked-users-topic
     partitions: 3
     replicas: 2
     min-insync-replicas: 2

@@ -9,8 +9,8 @@ import java.util.UUID;
 public class Message {
 
     private UUID id;
-    private String user_id;
-    private String recipient_id;
+    private String userId;
+    private String recipientId;
     private String message;
     private LocalDateTime timestamp;
 
