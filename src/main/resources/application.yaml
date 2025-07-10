@@ -14,6 +14,7 @@ spring:
       group-id: filtered-message
       properties:
         spring.json.trusted.packages: "ru.yandex.practicum.model.*"
+        spring.json.value.default.type: "ru.yandex.practicum.model.Message"
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
 topic:

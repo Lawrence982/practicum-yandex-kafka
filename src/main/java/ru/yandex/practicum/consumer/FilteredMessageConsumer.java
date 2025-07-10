@@ -9,9 +9,7 @@ import ru.yandex.practicum.model.Message;
 
 @Slf4j
 @Component
-@KafkaListener(topics = "${topic.filtered-messages.name}", properties = {
-        "spring.json.value.default.type=ru.yandex.practicum.model.Message"
-})
+@KafkaListener(topics = "${topic.filtered-messages.name}")
 public class FilteredMessageConsumer {
 
     @KafkaHandler
