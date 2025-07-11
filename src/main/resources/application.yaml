@@ -16,6 +16,15 @@ spring:
         spring.json.trusted.packages: "ru.yandex.practicum.model.*"
         spring.json.value.default.type: "ru.yandex.practicum.model.Message"
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+    streams:
+      application-id: practicum-kafka-streams-app
+      properties:
+        spring.kafka.streams.default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        spring.kafka.streams.default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+
+store:
+  blocked-users:
+    name: blocked-user-store
 
 topic:
   messages:

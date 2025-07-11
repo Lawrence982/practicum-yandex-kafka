@@ -1,5 +1,7 @@
 package ru.yandex.practicum.processor;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -10,32 +12,49 @@ import org.apache.kafka.streams.state.Stores;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.model.BlockedUser;
 import ru.yandex.practicum.serdes.BlockedUsersSerdes;
 
-@Component
+@Slf4j
+@Component("blockedUserProcessor")
 public class BlockedUserProcessor {
 
     @Value("${topic.blocked-users.name}")
     private String blockedUsersTopicName;
 
-    @Autowired
-    public void process(StreamsBuilder streamsBuilder) {
+    @Value("${store.blocked-users.name}")
+    private String blockedUsersStoreName;
 
-        KeyValueBytesStoreSupplier blockedUserStore = Stores.persistentKeyValueStore("blocked-user-store");
+    @Autowired
+    private StreamsBuilder streamsBuilder;
+
+    public void process() {
+        // Создаём персистентный стор
+        KeyValueBytesStoreSupplier blockedUserStore =
+                Stores.persistentKeyValueStore(blockedUsersStoreName);
 
         streamsBuilder
                 .stream(blockedUsersTopicName, Consumed.with(Serdes.String(), new BlockedUsersSerdes()))
                 .map((id, blockedUser) ->
                         KeyValue.pair(
-                                createBlockedUserStoreKey(
-                                        blockedUser.getId().toString(),
-                                        blockedUser.getBlockedUserId()
-                                ),
-                                blockedUser))
-                .toTable(Materialized.as(blockedUserStore));
+                                createBlockedUserStoreKey(blockedUser.getBlockedUserId(), blockedUser.getUserId()),
+                                blockedUser
+                        )
+                )
+                .peek((id, blockedUser) -> log.info("Store blocker user: {}", blockedUser))
+                .toTable(
+                        Materialized.<String, BlockedUser>as(blockedUserStore)
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(new BlockedUsersSerdes())
+                );
     }
 
     public String createBlockedUserStoreKey(String senderId, String recipientId) {
         return senderId + "-" + recipientId;
+    }
+
+    @PostConstruct
+    public void init() {
+        process(); // запуск построения топологии после инициализации
     }
 }

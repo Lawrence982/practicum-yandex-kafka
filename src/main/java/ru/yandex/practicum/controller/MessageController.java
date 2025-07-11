@@ -8,6 +8,7 @@ import ru.yandex.practicum.model.Message;
 import ru.yandex.practicum.service.MessageService;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/message")
@@ -25,6 +26,18 @@ public class MessageController {
     @PostMapping("/batch")
     public ResponseEntity<List<Message>> sendMessageBatch(@RequestBody List<Message> messages) {
         List<Message> result = messageService.sendMessageBatch(messages);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @PostMapping("/censoredWord")
+    public ResponseEntity<Set<String>> addCensoredWords(@RequestBody List<String> words) {
+        Set<String> result = messageService.addCensoredWords(words);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @DeleteMapping("/censoredWord")
+    public ResponseEntity<Set<String>> deleteCensoredWords(@RequestBody List<String> words) {
+        Set<String> result = messageService.deleteCensoredWords(words);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 

@@ -12,9 +12,7 @@ import ru.yandex.practicum.model.Message;
 import ru.yandex.practicum.service.MessageService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -26,6 +24,8 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     @Qualifier("kafkaTemplate")
     private KafkaTemplate<String, Message> kafkaTemplate;
+
+    public final static Set<String> censoredWords = new HashSet<>();
 
     @Override
     public Message sendMessage(Message message) {
@@ -51,10 +51,26 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<Message> sendMessageBatch(List<Message> messages) {
         List<Message> result = new ArrayList<>(messages);
-        for (Message message: messages) {
+        for (Message message : messages) {
             result.add(sendMessage(message));
         }
         return result;
+    }
+
+    @Override
+    public Set<String> addCensoredWords(List<String> words) {
+        for (String word : words) {
+            censoredWords.add(word.toLowerCase());
+        }
+        return censoredWords;
+    }
+
+    @Override
+    public Set<String> deleteCensoredWords(List<String> words) {
+        for (String word : words) {
+            censoredWords.remove(word.toLowerCase());
+        }
+        return censoredWords;
     }
 
 }

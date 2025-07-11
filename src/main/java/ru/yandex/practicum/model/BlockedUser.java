@@ -5,10 +5,10 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class User {
+public class BlockedUser {
 
-    private UUID id;
-    private String name;
+    private String userId;
     private String blockedUserId;
+    private String reason;
 
 }
