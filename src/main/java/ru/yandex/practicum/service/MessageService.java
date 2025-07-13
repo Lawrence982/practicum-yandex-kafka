@@ -2,7 +2,6 @@ package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.model.Message;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 

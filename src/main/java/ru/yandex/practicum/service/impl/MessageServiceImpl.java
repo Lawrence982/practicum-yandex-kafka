@@ -25,7 +25,7 @@ public class MessageServiceImpl implements MessageService {
     @Qualifier("kafkaTemplate")
     private KafkaTemplate<String, Message> kafkaTemplate;
 
-    public final static Set<String> censoredWords = new HashSet<>();
+    public final static Set<String> CENSORED_WORDS = new HashSet<>();
 
     @Override
     public Message sendMessage(Message message) {
@@ -60,17 +60,17 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public Set<String> addCensoredWords(List<String> words) {
         for (String word : words) {
-            censoredWords.add(word.toLowerCase());
+            CENSORED_WORDS.add(word.toLowerCase());
         }
-        return censoredWords;
+        return CENSORED_WORDS;
     }
 
     @Override
     public Set<String> deleteCensoredWords(List<String> words) {
         for (String word : words) {
-            censoredWords.remove(word.toLowerCase());
+            CENSORED_WORDS.remove(word.toLowerCase());
         }
-        return censoredWords;
+        return CENSORED_WORDS;
     }
 
 }

@@ -1,4 +1,3 @@
-# KRaft config
 name: yandex
 services:
   kafka-0:
@@ -16,8 +15,8 @@ services:
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-0:9092,EXTERNAL://kafka-0:9094
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-#    volumes:
-#      - kafka_0_data:/bitnami/kafka
+    volumes:
+      - kafka_0_data:/bitnami/kafka
     healthcheck:
       test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-0:9094" ]
       interval: 10s
@@ -39,8 +38,8 @@ services:
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9095
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092,EXTERNAL://kafka-1:9095
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-#    volumes:
-#      - kafka_1_data:/bitnami/kafka
+    volumes:
+      - kafka_1_data:/bitnami/kafka
     healthcheck:
       test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-1:9095" ]
       interval: 10s
@@ -62,25 +61,23 @@ services:
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092,EXTERNAL://kafka-2:9096
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-#    volumes:
-#      - kafka_2_data:/bitnami/kafka
+    volumes:
+      - kafka_2_data:/bitnami/kafka
     healthcheck:
       test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-2:9096" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-#  ksqldb-server:
-#    image: confluentinc/ksqldb-server:latest
-#    depends_on:
-#      kafka-0:
-#        condition: service_healthy
-#    environment:
-#      KSQL_BOOTSTRAP_SERVERS: kafka-0:9094
-#    ports:
-#      - "8088:8088"
-##    networks:
-##      - kafka-network
+  ksqldb-server:
+    image: confluentinc/ksqldb-server:latest
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+    environment:
+      KSQL_BOOTSTRAP_SERVERS: kafka-0:9094
+    ports:
+      - "8088:8088"
 
   ui:
     image: provectuslabs/kafka-ui:v0.7.2
@@ -88,14 +85,18 @@ services:
       - "8080:8080"
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-0:9092
-#      - KAFKA_CLUSTERS_0_KSQLDBSERVER=http://ksqldb-server:8088
+      - KAFKA_CLUSTERS_0_KSQLDBSERVER=http://ksqldb-server:8088
       - KAFKA_CLUSTERS_0_NAME=kraft
   app-1:
     build:
       context: ../
       dockerfile: Dockerfile
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62925
+    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
     ports:
       - "8081:8080"
+      - "62925:62925"
     depends_on:
       kafka-0:
         condition: service_healthy
@@ -104,21 +105,8 @@ services:
       kafka-2:
         condition: service_healthy
 
-#  app-2:
-#    build:
-#      context: ../
-#      dockerfile: Dockerfile
-#    ports:
-#      - "8082:8080"
-#    depends_on:
-#      kafka-0:
-#        condition: service_healthy
-#      kafka-1:
-#        condition: service_healthy
-#      kafka-2:
-#        condition: service_healthy
 
-#volumes:
-#  kafka_0_data:
-#  kafka_1_data:
-#  kafka_2_data:
+volumes:
+  kafka_0_data:
+  kafka_1_data:
+  kafka_2_data:

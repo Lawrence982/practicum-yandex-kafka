@@ -16,7 +16,7 @@ import ru.yandex.practicum.model.BlockedUser;
 import ru.yandex.practicum.serdes.BlockedUsersSerdes;
 
 @Slf4j
-@Component("blockedUserProcessor")
+@Component
 public class BlockedUserProcessor {
 
     @Value("${topic.blocked-users.name}")
@@ -27,6 +27,11 @@ public class BlockedUserProcessor {
 
     @Autowired
     private StreamsBuilder streamsBuilder;
+
+    @PostConstruct
+    public void init() {
+        process(); // запуск построения топологии после инициализации
+    }
 
     public void process() {
         // Создаём персистентный стор
@@ -51,10 +56,5 @@ public class BlockedUserProcessor {
 
     public String createBlockedUserStoreKey(String senderId, String recipientId) {
         return senderId + "-" + recipientId;
-    }
-
-    @PostConstruct
-    public void init() {
-        process(); // запуск построения топологии после инициализации
     }
 }
