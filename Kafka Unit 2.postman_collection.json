@@ -1,0 +1,178 @@
+{
+	"info": {
+		"_postman_id": "671f00fc-e288-46ce-af5b-627802d114fe",
+		"name": "Kafka Unit 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29835883"
+	},
+	"item": [
+		{
+			"name": "Single Message",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\": \"1\",\r\n    \"recipientId\": \"2\",\r\n    \"message\": \"Hi! Are you okay? You are sad\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/message",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"message"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single block User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\": \"1\",\r\n    \"blockedUserId\": \"3\",\r\n    \"reason\": \"spam\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/user/block",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"user",
+						"block"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Batch block User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"userId\": \"1\",\r\n        \"blockedUserId\": \"3\",\r\n        \"reason\": \"spam\"\r\n    },\r\n    {\r\n        \"userId\": \"3\",\r\n        \"blockedUserId\": \"2\",\r\n        \"reason\": \"not friend\"\r\n    },\r\n    {\r\n        \"userId\": \"2\",\r\n        \"blockedUserId\": \"3\",\r\n        \"reason\": \"not friend\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/user/block/batch",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"user",
+						"block",
+						"batch"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Batch Message",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"userId\": \"1\",\r\n        \"recipientId\": \"2\",\r\n        \"message\": \"Hi! Are you okay? You are sad.\"\r\n    },\r\n    {\r\n        \"userId\": \"2\",\r\n        \"recipientId\": \"1\",\r\n        \"message\": \"Hi! Yes. I just evil for all of this!\"\r\n    },\r\n    {\r\n        \"userId\": \"3\",\r\n        \"recipientId\": \"1\",\r\n        \"message\": \"spam spam spam\"\r\n    },\r\n    {\r\n        \"userId\": \"2\",\r\n        \"recipientId\": \"3\",\r\n        \"message\": \"Have you blocked me?\"\r\n    },\r\n    {\r\n        \"userId\": \"3\",\r\n        \"recipientId\": \"2\",\r\n        \"message\": \"You are bad and evil!\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/message/batch",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"message",
+						"batch"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add censored word",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    \"bad\",\r\n    \"evil\",\r\n    \"sad\"\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/message/censoredWord",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"message",
+						"censoredWord"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove censored word",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    \"evil\"\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/message/censoredWord",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"message",
+						"censoredWord"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
