@@ -76,8 +76,8 @@ docker compose logs app-1
 ```
 POST /user/block
 {
-    "userId": "id of blocked user",
-    "blockedUserId": "id of blocking user",
+    "userId": "id of user",
+    "blockedUserId": "id of blocked user",
     "reason": "reason for blocking"
 }
  ```
@@ -85,13 +85,13 @@ POST /user/block
 POST /user/block/batch
 [
     {
-        "userId": "id of blocked user",
-        "blockedUserId": "id of blocking user",
+        "userId": "id of user",
+        "blockedUserId": "id of blocked user",
         "reason": "reason for blocking"
     },
     {
-        "userId": "id of blocked user",
-        "blockedUserId": "id of blocking user",
+        "userId": "id of user",
+        "blockedUserId": "id of blocked user",
         "reason": "reason for blocking"
     }
 ]
@@ -137,3 +137,9 @@ POST /message/batch
     }
 ]
  ```
+В качестве ответа запросы вернут список сообщений, которые впоследствии будут отправлены в kafka топик filtered_messages.
+
+ВНИМАНИЕ!
+Данный ответ не содержит сообщения, подвернутые цензуре из списка запрещенных слов. Данные REST API предназначены только
+для удобства тестирования и отправки сообщений в Kafka. Для просмотра итогового результата следует смотреть топик filtered_messages
+или логи java application (начало лога: Consumer received filtered message).

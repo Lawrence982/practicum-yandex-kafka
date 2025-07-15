@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.model.Message;
+import ru.yandex.practicum.processor.BlockedUserProcessor;
 import ru.yandex.practicum.service.MessageService;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,9 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     @Qualifier("kafkaTemplate")
     private KafkaTemplate<String, Message> kafkaTemplate;
+
+    @Autowired
+    private BlockedUserProcessor blockedUserProcessor;
 
     public final static Set<String> CENSORED_WORDS = new HashSet<>();
 
@@ -45,14 +49,17 @@ public class MessageServiceImpl implements MessageService {
             }
         });
 
-        return message;
+        return blockedUserProcessor.isMessageFromNotBlockedUser(message) ? message : null;
     }
 
     @Override
     public List<Message> sendMessageBatch(List<Message> messages) {
-        List<Message> result = new ArrayList<>(messages);
+        List<Message> result = new ArrayList<>(messages.size());
         for (Message message : messages) {
-            result.add(sendMessage(message));
+            message = sendMessage(message);
+            if (message != null) {
+                result.add(message);
+            }
         }
         return result;
     }

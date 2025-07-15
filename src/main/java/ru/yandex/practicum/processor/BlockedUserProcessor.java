@@ -3,16 +3,22 @@ package ru.yandex.practicum.processor;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
+import org.apache.kafka.streams.state.QueryableStoreTypes;
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.state.Stores;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.model.BlockedUser;
+import ru.yandex.practicum.model.Message;
 import ru.yandex.practicum.serdes.BlockedUsersSerdes;
 
 @Slf4j
@@ -27,6 +33,9 @@ public class BlockedUserProcessor {
 
     @Autowired
     private StreamsBuilder streamsBuilder;
+
+    @Autowired
+    private StreamsBuilderFactoryBean factoryBean;
 
     @PostConstruct
     public void init() {
@@ -54,7 +63,23 @@ public class BlockedUserProcessor {
                 );
     }
 
-    public String createBlockedUserStoreKey(String senderId, String recipientId) {
+    public boolean isMessageFromNotBlockedUser(Message message) {
+        KafkaStreams kafkaStreams = factoryBean.getKafkaStreams();
+
+        ReadOnlyKeyValueStore<String, BlockedUser> blockedUsers = kafkaStreams.store(
+                StoreQueryParameters.fromNameAndType(
+                        blockedUsersStoreName,
+                        QueryableStoreTypes.keyValueStore()
+                )
+        );
+
+        String blockedUserStoreKey = createBlockedUserStoreKey(message.getUserId(), message.getRecipientId());
+        BlockedUser blockedUser = blockedUsers.get(blockedUserStoreKey);
+
+        return blockedUser == null;
+    }
+
+    private String createBlockedUserStoreKey(String senderId, String recipientId) {
         return senderId + "-" + recipientId;
     }
 }

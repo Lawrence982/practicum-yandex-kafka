@@ -5,8 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.model.Message;
+import ru.yandex.practicum.model.Response;
 import ru.yandex.practicum.service.MessageService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -18,15 +20,16 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping
-    public ResponseEntity<Message> sendMessage(@RequestBody Message message) {
-        Message createdProduct = messageService.sendMessage(message);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+    public ResponseEntity<Response> sendMessage(@RequestBody Message message) {
+        Message sentMessage = messageService.sendMessage(message);
+        Response response = sentMessage == null ? new Response(Collections.emptyList()) : new Response(List.of(sentMessage));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<List<Message>> sendMessageBatch(@RequestBody List<Message> messages) {
-        List<Message> result = messageService.sendMessageBatch(messages);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    public ResponseEntity<Response> sendMessageBatch(@RequestBody List<Message> messages) {
+        List<Message> sentMessages = messageService.sendMessageBatch(messages);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new Response(sentMessages));
     }
 
     @PostMapping("/censoredWord")
