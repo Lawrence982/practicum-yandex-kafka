@@ -1,196 +1,210 @@
-version: '3.8'
+version: "3.5"
 services:
-  grafana:
-    image: "grafana/grafana:${GRAFANA_VERSION}"
-    restart: unless-stopped
-    ports:
-     - "3001:3000"
+
+  # Общие настройки Kafka для переиспользования в каждом брокере
+  x-kafka-common:
+    &kafka-common
+    image: bitnami/kafka:3.7
     environment:
-      GF_PATHS_DATA : /var/lib/grafana
-      GF_SECURITY_ADMIN_PASSWORD : kafka
-    volumes:
-     - ./grafana/provisioning:/etc/grafana/provisioning
-     - ./grafana/dashboards:/var/lib/grafana/dashboards
-    container_name: grafana
+      &kafka-common-env
+      KAFKA_ENABLE_KRAFT: yes                          # Включение режима KRaft (Kafka без Zookeeper)
+      ALLOW_PLAINTEXT_LISTENER: yes                    # Разрешение незашифрованных подключений
+      KAFKA_KRAFT_CLUSTER_ID: practicum                # Уникальный идентификатор KRaft-кластера (задан один раз при первом запуске)
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"  # Протоколы для разных типов слушателей
+      KAFKA_CFG_PROCESS_ROLES: broker,controller       # Роль узла: одновременно брокер и контроллер метаданных
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER  # Контроллер использует listener CONTROLLER (для внутреннего кворума метаданных)
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093  # Участники кворума контроллеров
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+    networks:
+      - proxynet
+
+  # Первый брокер Kafka
+  kafka-0:
+    <<: *kafka-common
+    container_name: kafka-0
+    restart: always
+    ports:
+      - "9094:9094"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-0:9092,EXTERNAL://kafka-0:9094
+#    volumes:
+#      - kafka_0_data:/bitnami/kafka
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-0:9094" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-1:
+    <<: *kafka-common
+    container_name: kafka-1
+    restart: always
+    ports:
+      - "9095:9095"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9095
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,EXTERNAL://kafka-1:9095
+#    volumes:
+#      - kafka_1_data:/bitnami/kafka
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-1:9095" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-2:
+    <<: *kafka-common
+    container_name: kafka-2
+    restart: always
+    ports:
+      - "9096:9096"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_CFG_NODE_ID: 2
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,EXTERNAL://kafka-2:9096
+#    volumes:
+#      - kafka_2_data:/bitnami/kafka
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-2:9096" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Интерфейс управления Kafka (Kafka UI)
+  ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    restart: always
+    ports:
+      - "8080:8080"                           # Интерфейс доступен на localhost:8080
+    environment:
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9092 # Указываем, где искать брокер Kafka
+      KAFKA_CLUSTERS_0_NAME: kraft                     # Название кластера в UI
+    networks:
+      - proxynet
+
+  kafka-connect:
+    build:
+      context: ./kafka-connect
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"  # REST API Kafka Connect
+      - "9875:9875"
+      - "9876:9876"
     depends_on:
-     - prometheus
+      - kafka-0
+      - kafka-1
+      - kafka-2
+#      - schema-registry
+      - postgres
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka-0:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: 'kafka-connect'
+      CONNECT_REST_ADVERTISED_HOST_NAME: 'localhost'
+
+      # Хранение конфигурации, смещений и статусов
+      CONNECT_CONFIG_STORAGE_TOPIC: 'connect-config-storage'
+      CONNECT_OFFSET_STORAGE_TOPIC: 'connect-offset-storage'
+      CONNECT_STATUS_STORAGE_TOPIC: 'connect-status-storage'
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 2
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 2
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 2
+
+      # Конвертеры
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+#      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+
+      # Export JMX metrics to :9876/metrics for Prometheus
+      KAFKA_JMX_PORT: '9875'
+      KAFKA_OPTS: "-javaagent:/opt/jmx_prometheus_javaagent-0.15.0.jar=9876:/opt/kafka-connect.yml"
+      # Read connection password from file
+      CONNECT_CONFIG_PROVIDERS: "file"
+      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
+
+      # Пути к плагинам
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+    volumes:
+      - ./confluent-hub-components/:/etc/kafka-connect/jars
+    networks:
+      - proxynet
+
+  #  # Schema Registry
+#  schema-registry:
+#    image: bitnami/schema-registry:7.6
+#    ports:
+#      - '127.0.0.1:8081:8081'                           # API для регистрации/получения схем
+#    depends_on:
+#      - kafka-0
+#      - kafka-1
+#      - kafka-2
+#    environment:
+#      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081    # Прослушивание запросов на порту 8081
+#      SCHEMA_REGISTRY_KAFKA_BROKERS: PLAINTEXT://kafka-0:9092,PLAINTEXT://kafka-1:9092,PLAINTEXT://kafka-2:9092  # Список брокеров Kafka
 #    networks:
 #      - proxynet
+
+  # База данных PostgreSQL (источник данных)
+  postgres:
+    image: debezium/postgres:16
+    hostname: postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres-user
+      POSTGRES_PASSWORD: postgres-pw
+      POSTGRES_DB: customers
+    volumes:
+      - ./postgres/custom-config.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - proxynet
 
   prometheus:
-    image: "prom/prometheus:${PROMETHEUS_VERSION}"
-    restart: unless-stopped
-    ports:
-     - "9090:9090"
-    volumes:
-     - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-     - ./etc/prometheus/alert.rules:/etc/prometheus/alert.rules
-    command: "--config.file=/etc/prometheus/prometheus.yml"
+    image: prom/prometheus:v2.47.1
     container_name: prometheus
-#    networks:
-#      - proxynet
-
-  alertmanager:
-    image: prom/alertmanager:v0.24.0
-    restart: unless-stopped
-    container_name: alertmanager
+    ports:
+      - 9090:9090
     volumes:
-      - ./etc/alertmanager/config.yml:/etc/alertmanager/config.yml
-    command:
-      - '--config.file=/etc/alertmanager/config.yml'
-      - '--storage.path=/alertmanager'
-      - '--log.level=debug'
-    ports:
-      - 9093:9093
-#    networks:
-#      - proxynet
+      - ./prometheus:/etc/prometheus
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+    links:
+      - kafka-connect
+    networks:
+      - proxynet
 
-
-  jmx-kafka101:
-    image: "sscaling/jmx-prometheus-exporter"
-    restart: unless-stopped
+  grafana:
+    container_name: grafana
+    build:
+      context: ./grafana
     ports:
-     - "5556:5556"
+      - 3000:3000
     environment:
-     CONFIG_YML : "/etc/jmx_exporter/config.yml"
-     JVM_OPTS: ${PROMETHEUS_JMX_AGENT_JVM_OPTS}
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_SECURITY_ADMIN_PASSWORD: kafka
     volumes:
-     - ./etc/jmx_exporter/config_kafka101.yml:/etc/jmx_exporter/config.yml
-    container_name: jmx-kafka101
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
-     - kafka101
-#    networks:
-#      - proxynet
+      - prometheus
+    networks:
+      - proxynet
 
-  jmx-kafka102:
-    image: "sscaling/jmx-prometheus-exporter"
-    restart: unless-stopped
-    ports:
-     - "5557:5556"
-    environment:
-     CONFIG_YML : "/etc/jmx_exporter/config.yml"
-     JVM_OPTS: ${PROMETHEUS_JMX_AGENT_JVM_OPTS}
 
-    volumes:
-     - ./etc/jmx_exporter/config_kafka102.yml:/etc/jmx_exporter/config.yml
-    container_name: jmx-kafka102
-    depends_on:
-     - kafka102
-#    networks:
-#      - proxynet
+networks:
+  proxynet:
+    name: custom_network                               # Общая пользовательская сеть Docker
 
-  jmx-kafka103:
-    image: "sscaling/jmx-prometheus-exporter"
-    restart: unless-stopped
-    ports:
-     - "5558:5556"
-    environment:
-     CONFIG_YML : "/etc/jmx_exporter/config.yml"
-     JVM_OPTS: ${PROMETHEUS_JMX_AGENT_JVM_OPTS}
-    volumes:
-     - ./etc/jmx_exporter/config_kafka103.yml:/etc/jmx_exporter/config.yml
-    container_name: jmx-kafka103
-    depends_on:
-     - kafka103
-#    networks:
-#      - proxynet
-
-  kafka101:
-    image: "confluentinc/cp-kafka:${CONFLUENT_VERSION}"
-    restart: unless-stopped
-    ports:
-      - "19092:9092"
-      - "9991:9991"
-    container_name: kafka101
-    environment:
-      KAFKA_NODE_ID: 101
-      # random cluster ID used for formatting LOG_DIR for KRaft
-      CLUSTER_ID: 'xtzWWN4bTjitpL3kfd9s5g'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '101@kafka101:29093,102@kafka102:29093,103@kafka103:29093'
-      KAFKA_PROCESS_ROLES: 'broker,controller' 
-      KAFKA_JMX_PORT: 9991
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka101:29092,PLAINTEXT_HOST://localhost:9092'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka101:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka101:29093'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka101:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'false'
-      KAFKA_HEAP_OPTS: ${KAFKA_BROKER_HEAP_OPTS}
-    deploy:
-      resources:
-        limits:
-          memory: ${KAFKA_BROKER_MEM_LIMIT}
-#    networks:
-#      - proxynet
-
-  kafka102:
-    image: "confluentinc/cp-kafka:${CONFLUENT_VERSION}"
-    restart: unless-stopped
-    ports:
-      - "29092:9092"
-      - "9992:9992"
-    container_name: kafka102
-    environment:
-      KAFKA_NODE_ID: 102
-      # random cluster ID used for formatting LOG_DIR for KRaft
-      CLUSTER_ID: 'xtzWWN4bTjitpL3kfd9s5g'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '101@kafka101:29093,102@kafka102:29093,103@kafka103:29093'
-      KAFKA_PROCESS_ROLES: 'broker,controller' 
-      KAFKA_JMX_PORT: 9992
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka102:29092,PLAINTEXT_HOST://localhost:9092'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka102:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka102:29093'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka102:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'false'
-      KAFKA_HEAP_OPTS: ${KAFKA_BROKER_HEAP_OPTS}
-    deploy:
-      resources:
-        limits:
-          memory: ${KAFKA_BROKER_MEM_LIMIT}
-#    networks:
-#      - proxynet
-
-  kafka103:  
-    image: "confluentinc/cp-kafka:${CONFLUENT_VERSION}"
-    restart: unless-stopped
-    ports:
-      - "39092:9092"
-      - "9993:9993"
-    container_name: kafka103
-    environment:
-      KAFKA_NODE_ID: 103
-      # random cluster ID used for formatting LOG_DIR for KRaft
-      CLUSTER_ID: 'xtzWWN4bTjitpL3kfd9s5g'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '101@kafka101:29093,102@kafka102:29093,103@kafka103:29093'
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_JMX_PORT: 9993
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka103:29092,PLAINTEXT_HOST://localhost:9092'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka103:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka103:29093'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka103:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'false'      
-      KAFKA_HEAP_OPTS: ${KAFKA_BROKER_HEAP_OPTS}
-    deploy:
-      resources:
-        limits:
-          memory: ${KAFKA_BROKER_MEM_LIMIT}
-#    networks:
-#      - proxynet
-
-#networks:
-#  proxynet:
-#    name: kafka_network
+#volumes:
+#  kafka_0_data:
+#  kafka_1_data:
+#  kafka_2_data:
