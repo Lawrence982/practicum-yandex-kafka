@@ -23,3 +23,5 @@ target/
 *.iws
 *.iml
 *.ipr
+
+*Zone.Identifier
