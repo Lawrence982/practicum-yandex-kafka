@@ -1,45 +1,61 @@
 spring:
-  application:
-    name: yandex-kafka
-  kafka:
-    bootstrap-servers: kafka-0:9094, kafka-1:9095, kafka-2:9096
-    producer:
-      asks: all # количество реплик, которые должны подтвердить синхронизацию
-      retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      group-id: filtered-message
-      properties:
-        spring.json.trusted.packages: "ru.yandex.practicum.model.*"
-        spring.json.value.default.type: "ru.yandex.practicum.model.Message"
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-    streams:
-      application-id: practicum-kafka-streams-app
-      properties:
-        spring.kafka.streams.default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-        spring.kafka.streams.default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+  datasource:
+    url: jdbc:postgresql://postgres:5432/postgres
+    username: postgres
+    password: pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties.hibernate:
+      batch_size: 50
+      fetch_size: 50
+      show_sql: true
+      format_sql: true
+      hbm2ddl.auto: update
 
-store:
-  blocked-users:
-    name: blocked-user-store
 
-topic:
-  messages:
-    name: messages-topic
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
-  filtered-messages:
-    name: filtered-messages-topic
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
-  blocked-users:
-    name: blocked-users-topic
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
+
+#spring:
+#  application:
+#    name: yandex-kafka
+#  kafka:
+#    bootstrap-servers: kafka-0:9094, kafka-1:9095, kafka-2:9096
+#    producer:
+#      asks: all # количество реплик, которые должны подтвердить синхронизацию
+#      retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#    consumer:
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+#      group-id: filtered-message
+#      properties:
+#        spring.json.trusted.packages: "ru.yandex.practicum.model.*"
+#        spring.json.value.default.type: "ru.yandex.practicum.model.Message"
+#        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+#    streams:
+#      application-id: practicum-kafka-streams-app
+#      properties:
+#        spring.kafka.streams.default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+#        spring.kafka.streams.default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+
+#store:
+#  blocked-users:
+#    name: blocked-user-store
+#
+#topic:
+#  messages:
+#    name: messages-topic
+#    partitions: 3
+#    replicas: 2
+#    min-insync-replicas: 2
+#  filtered-messages:
+#    name: filtered-messages-topic
+#    partitions: 3
+#    replicas: 2
+#    min-insync-replicas: 2
+#  blocked-users:
+#    name: blocked-users-topic
+#    partitions: 3
+#    replicas: 2
+#    min-insync-replicas: 2
 

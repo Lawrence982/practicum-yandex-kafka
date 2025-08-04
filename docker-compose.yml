@@ -100,7 +100,6 @@ services:
       - kafka-0
       - kafka-1
       - kafka-2
-#      - schema-registry
       - postgres
     environment:
       CONNECT_BOOTSTRAP_SERVERS: kafka-0:9092
@@ -121,7 +120,6 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-#      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
       # Export JMX metrics to :9876/metrics for Prometheus
       KAFKA_JMX_PORT: '9875'
@@ -137,21 +135,6 @@ services:
     networks:
       - proxynet
 
-  #  # Schema Registry
-#  schema-registry:
-#    image: bitnami/schema-registry:7.6
-#    ports:
-#      - '127.0.0.1:8081:8081'                           # API для регистрации/получения схем
-#    depends_on:
-#      - kafka-0
-#      - kafka-1
-#      - kafka-2
-#    environment:
-#      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081    # Прослушивание запросов на порту 8081
-#      SCHEMA_REGISTRY_KAFKA_BROKERS: PLAINTEXT://kafka-0:9092,PLAINTEXT://kafka-1:9092,PLAINTEXT://kafka-2:9092  # Список брокеров Kafka
-#    networks:
-#      - proxynet
-
   # База данных PostgreSQL (источник данных)
   postgres:
     image: debezium/postgres:16
@@ -160,12 +143,32 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres-user
-      POSTGRES_PASSWORD: postgres-pw
-      POSTGRES_DB: customers
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: postgres
     volumes:
       - ./postgres/custom-config.conf:/etc/postgresql/postgresql.conf
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - proxynet
+
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62925
+    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
+    ports:
+      - "8080:8080"
+      - "62925:62925"
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
     networks:
       - proxynet
 
@@ -173,7 +176,7 @@ services:
     image: prom/prometheus:v2.47.1
     container_name: prometheus
     ports:
-      - 9090:9090
+      - "9090:9090"
     volumes:
       - ./prometheus:/etc/prometheus
     command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
@@ -182,22 +185,22 @@ services:
     networks:
       - proxynet
 
-  grafana:
-    container_name: grafana
-    build:
-      context: ./grafana
-    ports:
-      - 3000:3000
-    environment:
-      GF_PATHS_DATA: /var/lib/grafana
-      GF_SECURITY_ADMIN_PASSWORD: kafka
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    depends_on:
-      - prometheus
-    networks:
-      - proxynet
+#  grafana:
+#    container_name: grafana
+#    build:
+#      context: ./grafana
+#    ports:
+#      - 3000:3000
+#    environment:
+#      GF_PATHS_DATA: /var/lib/grafana
+#      GF_SECURITY_ADMIN_PASSWORD: kafka
+#    volumes:
+#      - ./grafana/provisioning:/etc/grafana/provisioning
+#      - ./grafana/dashboards:/var/lib/grafana/dashboards
+#    depends_on:
+#      - prometheus
+#    networks:
+#      - proxynet
 
 
 networks:
