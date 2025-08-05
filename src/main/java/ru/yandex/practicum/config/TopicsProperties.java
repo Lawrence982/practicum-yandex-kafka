@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class TopicsProperties {
 
     private Topic users;
+    private Topic orders;
 
     @Getter
     @Setter

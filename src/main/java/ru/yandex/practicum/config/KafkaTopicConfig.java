@@ -22,6 +22,11 @@ public class KafkaTopicConfig {
         return createTopic(topicsProperties.getUsers());
     }
 
+    @Bean
+    NewTopic orderTopic() {
+        return createTopic(topicsProperties.getOrders());
+    }
+
     private NewTopic createTopic(TopicsProperties.Topic topic) {
         return TopicBuilder.name(topic.getName())
                 .partitions(topic.getPartitions())

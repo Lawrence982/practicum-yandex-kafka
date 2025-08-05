@@ -134,6 +134,12 @@ services:
       - ./confluent-hub-components/:/etc/kafka-connect/jars
     networks:
       - proxynet
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/connectors || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # База данных PostgreSQL (источник данных)
   postgres:
@@ -157,17 +163,19 @@ services:
       context: ./
       dockerfile: Dockerfile
     environment:
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62925
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
     command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
     ports:
       - "8081:8080"
-      - "62925:62925"
+      - "62924:62924"
     depends_on:
       kafka-0:
         condition: service_healthy
       kafka-1:
         condition: service_healthy
       kafka-2:
+        condition: service_healthy
+      kafka-connect:
         condition: service_healthy
     networks:
       - proxynet

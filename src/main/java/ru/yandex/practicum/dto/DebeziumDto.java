@@ -1,4 +1,4 @@
 package ru.yandex.practicum.dto;
 
-public record DebeziumDto(UserDto payload) {
+public record DebeziumDto<T>(T payload) {
 }

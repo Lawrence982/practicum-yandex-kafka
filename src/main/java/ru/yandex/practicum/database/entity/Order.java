@@ -1,5 +1,6 @@
 package ru.yandex.practicum.database.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,13 @@ public class Order extends AuditingEntity<Long> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User userId;
+    @JoinColumn(name = "user_id", updatable = false, insertable = false)
+    private User user;
+
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(name = "product_name")
     private String productName;
