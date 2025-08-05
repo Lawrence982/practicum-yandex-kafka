@@ -32,6 +32,12 @@ public abstract class AbstractEntityCrudService<Key, Entity> implements EntityCr
 
     @Override
     @Transactional
+    public List<Entity> createAll(List<Entity> entity) {
+        return entityRepository.saveAllAndFlush(entity);
+    }
+
+    @Override
+    @Transactional
     public Entity update(Key id, Entity changes) {
         Optional<Entity> optSaved = entityRepository.findById(id);
         if (optSaved.isEmpty()) {

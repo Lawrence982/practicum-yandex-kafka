@@ -31,6 +31,12 @@ public abstract class AbstractEntityController<Key, Entity> {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<Entity>> createAll(@RequestBody List<Entity> entities) {
+        List<Entity> created = entityService.createAll(entities);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<Entity> update(@PathVariable("id") Key id, @RequestBody Entity changes) {
         Entity updated = entityService.update(id, changes);

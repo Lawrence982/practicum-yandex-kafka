@@ -9,6 +9,8 @@ public interface EntityCrudService<Key, Entity> {
 
     Entity create(Entity entity);
 
+    List<Entity> createAll(List<Entity> entity);
+
     Entity update(Key id, Entity changes);
 
     void delete(Key id);
