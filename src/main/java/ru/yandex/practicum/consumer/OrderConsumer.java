@@ -10,18 +10,22 @@ import ru.yandex.practicum.dto.DebeziumDto;
 import ru.yandex.practicum.dto.OrderDto;
 import ru.yandex.practicum.util.PayloadExtractor;
 
+import java.util.List;
+
 @Slf4j
 @Component
-@KafkaListener(topics = "${topic.orders.name}")
+@KafkaListener(topics = "${topic.orders.name}", batch = "true")
 public class OrderConsumer {
 
     @Autowired
     PayloadExtractor payloadExtractor;
 
     @KafkaHandler
-    public void handle(@Payload DebeziumDto debeziumDto) {
-        OrderDto order = payloadExtractor.extract(debeziumDto, OrderDto.class);
+    public void handle(@Payload List<DebeziumDto> dtoList) {
+        payloadExtractor.extract(dtoList, OrderDto.class).forEach(this::handle);
+    }
 
+    private void handle(OrderDto order) {
         if (order != null) {
             log.info("Consumer received order: {}", order);
         } else {
