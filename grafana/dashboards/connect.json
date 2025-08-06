@@ -1925,7 +1925,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "kafka_producer_record_size_avg{clientId=\"connector-producer-postgres-source-0\",instance=\"kafka-connect:9876\"}",
+          "expr": "kafka_producer_record_size_avg{clientId=\"connector-producer-pg-connector-0\",instance=\"kafka-connect:9876\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2129,7 +2129,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "kafka_producer_records_per_request_avg{clientId=\"connector-producer-postgres-source-0\",instance=\"kafka-connect:9876\"}",
+          "expr": "kafka_producer_records_per_request_avg{clientId=\"connector-producer-pg-connector-0\",instance=\"kafka-connect:9876\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2232,13 +2232,23 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "kafka_producer_topic_record_send_total{clientId=\"connector-producer-postgres-source-0\",instance=\"kafka-connect:9876\",topic=\"postgresql-jdbc-bulk-users\"}",
+          "expr": "kafka_producer_topic_record_send_total{clientId=\"connector-producer-pg-connector-0\",instance=\"kafka-connect:9876\",topic=\"yandex.public.users\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{connector}}-{{task}}",
           "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "kafka_producer_topic_record_send_total{clientId=\"connector-producer-pg-connector-0\",instance=\"kafka-connect:9876\",topic=\"yandex.public.orders\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{connector}}-{{task}}",
+          "refId": "B"
         }
       ],
       "thresholds": [],
@@ -2490,7 +2500,7 @@
     ]
   },
   "timezone": "",
-  "title": "Kafka Connect Overview-0",
-  "uid": "kafka-connect-overview-0",
+  "title": "Kafka Connect Overview",
+  "uid": "kafka-connect-overview",
   "version": 2
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -37,6 +37,14 @@ public class Order extends AuditingEntity<Long> {
 
     private Integer quantity;
 
-    private LocalDate orderDate;
+    @Column(name = "order_date")
+    private Instant orderDate;
+
+    @PrePersist
+    public void prePersist() {
+        if (orderDate == null) {
+            orderDate = Instant.now();
+        }
+    }
 
 }
