@@ -63,26 +63,37 @@ docker compose logs app
 # Пошаговые инструкции по проверке работоспособности решения
 
 Для тестирования приложения можно использовать приложения по типу Postman.
-Для создания, получения, изменения или удаление пользователей и ордеров можно использовать REST запросы, описанные ниже в разделе "Описание REST запросов".
+
+1. Убедиться в том, что коннектор настроен и работает, можно с помощью запроса:
+
+```
+GET /connectors/pg-connector/status
+```
+Ожидаемый ответ:
+
+```
+{
+    "name": "pg-connector",
+    "connector": {
+        "state": "RUNNING",
+        "worker_id": "localhost:8083"
+    },
+    "tasks": [
+        {
+            "id": 0,
+            "state": "RUNNING",
+            "worker_id": "localhost:8083"
+        }
+    ],
+    "type": "source"
+}
+```
+
+2. Для создания, получения, изменения или удаление пользователей и ордеров можно использовать REST запросы, описанные ниже в разделе "Описание REST запросов".
+
 Тестовые данные для запросов можно найти в файле "Kafka Unit 4.postman_collection.json".
+
 Все изменения будут сохранены в базу данных, а затем отправлены в kafka с помощью kafka connect.
-Все сообщения из kafka будут прослушаны приложением и выведены в логи.
-Примеры логов:
-- Создание/изменение пользователя
-
-  r.y.practicum.consumer.UserConsumer      : Consumer received user: UserDto[id=1, name=John Doe, email=john@example.com]
-
-- Удаление пользователя
-
-  r.y.practicum.consumer.UserConsumer     : User was deleted
-
-- Создание/изменение ордера
-
-  r.y.practicum.consumer.OrderConsumer     : Consumer received order: OrderDto[id=1, userId=1, productName=Product A, quantity=2, orderDate=2025-08-07T10:21:55.035484Z]
-
-- Удаление ордера
-
-  r.y.practicum.consumer.OrderConsumer     : Order was deleted
 
 
 Описание REST запросов:
@@ -160,3 +171,23 @@ DELETE /user/{userId}
 ```
 DELETE /order/{orderId}
 ```
+3. Все сообщения из kafka будут прослушаны приложением и выведены в логи.
+
+Примеры логов:
+- Создание/изменение пользователя
+
+  r.y.practicum.consumer.UserConsumer      : Consumer received user: UserDto[id=1, name=John Doe, email=john@example.com]
+
+- Удаление пользователя
+
+  r.y.practicum.consumer.UserConsumer     : User was deleted
+
+- Создание/изменение ордера
+
+  r.y.practicum.consumer.OrderConsumer     : Consumer received order: OrderDto[id=1, userId=1, productName=Product A, quantity=2, orderDate=2025-08-07T10:21:55.035484Z]
+
+- Удаление ордера
+
+  r.y.practicum.consumer.OrderConsumer     : Order was deleted
+
+4) После необходимых операций над данными посмотреть дашборд в Grafana
