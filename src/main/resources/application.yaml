@@ -45,25 +45,24 @@ kafka-connect:
 connectors:
   pg-connector:
     properties:
-      connector.class: io.debezium.connector.postgresql.PostgresConnector
-      database.hostname: postgres
-      database.port: 5432
-      database.user: postgres
-      database.password: pass
-      database.dbname: postgres
-      database.server.name: postgres
-      table.include.list: public.users, public.orders
-      transforms: unwrap
-      transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
-      transforms.unwrap.drop.tombstones: false
-      transforms.unwrap.delete.handling.mode: rewrite
-      topic.prefix: yandex
-      task.max: 2
-      compression.type: snappy
-      batch.max.rows: 700
-      producer.override.batch.size: 817152
-      producer.override.linger.ms: 100
-      topic.creation.enable: false
-      topic.creation.default.replication.factor: -1
-      topic.creation.default.partitions: -1
-      skipped.operations: none
+      connector.class: io.debezium.connector.postgresql.PostgresConnector # определяет полное имя класса коннектора, который мы хотим запустить
+      database.hostname: postgres # сервер, на котором расположена база данных
+      database.port: 5432 # порт БД
+      database.user: postgres # юзер БД
+      database.password: pass # пароль БД
+      database.dbname: postgres # конкретная база данных на сервере
+      table.include.list: public.users, public.orders # список таблиц, изменения в которых нужно отслеживать
+      transforms: unwrap # трансформации, которые будут применяться к записям
+      transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState # тип операции "распаковки"
+      transforms.unwrap.drop.tombstones: false # следует ли удалять записи, которые были удалены в источнике данных
+      transforms.unwrap.delete.handling.mode: rewrite # как обрабатывать события удаления при извлечении данных из источника
+      topic.prefix: yandex # префикс, который будет добавлен к имени топика
+      task.max: 2 # максимальное количество задач, которые могут быть запущены для этого коннектора
+      compression.type: snappy # тип сжатия сообщений для топика
+      batch.max.rows: 700 # сколько строк читать за один раз
+      producer.override.batch.size: 817152 # максимальный размер пакета (в байтах), который продюсер будет использовать для отправки сообщений на брокер
+      producer.override.linger.ms: 100 # максимальная задержка перед отправкой пакета сообщений
+      topic.creation.enable: false # можно ли автоматически создавать новые топики при отправке сообщений на несуществующий топик
+      topic.creation.default.replication.factor: -1 # конфигурирует дефолтное количество реплик для каждой партиции. Значение -1 означает, что будет использоваться значение по умолчанию, заданное в конфигурации брокера Kafka
+      topic.creation.default.partitions: -1 # конфигурирует дефолтное количество партиций при создании топиков.
+      skipped.operations: none # данные, передаваемые в Kafka, содержат все операции, произошедшие в базе данных, без каких-либо пропусков или потерь.
