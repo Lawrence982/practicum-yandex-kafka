@@ -2,16 +2,15 @@ package ru.yandex.practicum.integration.database.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.Commit;
 import ru.yandex.practicum.database.repository.UserRepository;
-import ru.yandex.practicum.integration.annotation.IT;
+import ru.yandex.practicum.integration.IntegrationTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-@IT
 @RequiredArgsConstructor
-public class UserRepositoryTest {
+public class UserRepositoryTest extends IntegrationTestBase {
 
     private final UserRepository userRepository;
 
