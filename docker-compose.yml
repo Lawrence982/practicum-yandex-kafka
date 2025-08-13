@@ -7,14 +7,28 @@ services:
     image: bitnami/kafka:3.7
     environment:
       &kafka-common-env
-      KAFKA_ENABLE_KRAFT: yes                          # Включение режима KRaft (Kafka без Zookeeper)
-      ALLOW_PLAINTEXT_LISTENER: yes                    # Разрешение незашифрованных подключений
-      KAFKA_KRAFT_CLUSTER_ID: practicum                # Уникальный идентификатор KRaft-кластера (задан один раз при первом запуске)
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"  # Протоколы для разных типов слушателей
-      KAFKA_CFG_PROCESS_ROLES: broker,controller       # Роль узла: одновременно брокер и контроллер метаданных
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER  # Контроллер использует listener CONTROLLER (для внутреннего кворума метаданных)
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093  # Участники кворума контроллеров
+      KAFKA_ENABLE_KRAFT: yes
+      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_KRAFT_CLUSTER_ID: practicum
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SASL_SSL
+      KAFKA_CFG_SSL_CLIENT_AUTH: required
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: kafka-pass
+      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: kafka-pass
+      KAFKA_CFG_SSL_KEY_PASSWORD: kafka-pass
+      KAFKA_CERTIFICATE_PASSWORD: kafka-pass
+
+      # SASL
+      KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_CLIENT_USERS: kafka
+      KAFKA_CLIENT_PASSWORDS: kafka-pass
     networks:
       - proxynet
 
@@ -24,20 +38,23 @@ services:
     container_name: kafka-0
     restart: always
     ports:
-      - "9094:9094"
+      - "9093:9093"
     environment:
       <<: *kafka-common-env
       KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-0:9092,EXTERNAL://kafka-0:9094
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,SASL_SSL://:9093,CONTROLLER://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-0:9092,SASL_SSL://kafka-0:9093
     volumes:
-      - kafka_0_data:/bitnami/kafka
+      - ./kafka-0-creds/kafka.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks
+      - ./kafka-0-creds/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
+      - /jaas.conf:/bitnami/kafka/config/jaas/jaas.conf
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-0:9094" ]
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-0:9092" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Второй брокер Kafka
   kafka-1:
     <<: *kafka-common
     container_name: kafka-1
@@ -47,31 +64,14 @@ services:
     environment:
       <<: *kafka-common-env
       KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9095
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,EXTERNAL://kafka-1:9095
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,SASL_SSL://:9095,CONTROLLER://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,SASL_SSL://kafka-1:9095
     volumes:
-      - kafka_1_data:/bitnami/kafka
+      - ./kafka-1-creds/kafka.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks
+      - ./kafka-1-creds/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
+      - /jaas.conf:/bitnami/kafka/config/jaas/jaas.conf
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-1:9095" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  kafka-2:
-    <<: *kafka-common
-    container_name: kafka-2
-    restart: always
-    ports:
-      - "9096:9096"
-    environment:
-      <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 2
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9096
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,EXTERNAL://kafka-2:9096
-    volumes:
-      - kafka_2_data:/bitnami/kafka
-    healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-2:9096" ]
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-1:9092" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,80 +81,20 @@ services:
     image: provectuslabs/kafka-ui:v0.7.2
     restart: always
     ports:
-      - "8080:8080"                           # Интерфейс доступен на localhost:8080
+      - "8080:8080"
     environment:
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9092 # Указываем, где искать брокер Kafka
-      KAFKA_CLUSTERS_0_NAME: kraft                     # Название кластера в UI
-    networks:
-      - proxynet
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9093,kafka-1:9095
+      KAFKA_CLUSTERS_0_NAME: kraft
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: kafka-pass
+      JAVA_TOOL_OPTIONS: -Djava.security.auth.login.config=/etc/kafka/jaas.conf
 
-  kafka-connect:
-    build:
-      context: ./kafka-connect
-    container_name: kafka-connect
-    ports:
-      - "8083:8083"  # REST API Kafka Connect
-      - "9875:9875"
-      - "9876:9876"
-    depends_on:
-      - kafka-0
-      - kafka-1
-      - kafka-2
-      - postgres
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka-0:9092
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: 'kafka-connect'
-      CONNECT_REST_ADVERTISED_HOST_NAME: 'localhost'
 
-      # Хранение конфигурации, смещений и статусов
-      CONNECT_CONFIG_STORAGE_TOPIC: 'connect-config-storage'
-      CONNECT_OFFSET_STORAGE_TOPIC: 'connect-offset-storage'
-      CONNECT_STATUS_STORAGE_TOPIC: 'connect-status-storage'
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 2
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 2
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 2
-
-      # Конвертеры
-      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-
-      # Export JMX metrics to :9876/metrics for Prometheus
-      KAFKA_JMX_PORT: '9875'
-      KAFKA_OPTS: "-javaagent:/opt/jmx_prometheus_javaagent-0.15.0.jar=9876:/opt/kafka-connect.yml"
-      # Read connection password from file
-      CONNECT_CONFIG_PROVIDERS: "file"
-      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
-
-      # Пути к плагинам
-      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
     volumes:
-      - ./confluent-hub-components/:/etc/kafka-connect/jars
-    networks:
-      - proxynet
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8083/connectors || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # База данных PostgreSQL (источник данных)
-  postgres:
-    image: debezium/postgres:16
-    hostname: postgres
-    container_name: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: postgres
-    volumes:
-      - ./postgres/custom-config.conf:/etc/postgresql/postgresql.conf
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+      - ./jaas.conf:/etc/kafka/jaas.conf
+      - ./kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
     networks:
       - proxynet
 
@@ -173,49 +113,9 @@ services:
         condition: service_healthy
       kafka-1:
         condition: service_healthy
-      kafka-2:
-        condition: service_healthy
-      kafka-connect:
-        condition: service_healthy
     networks:
       - proxynet
-
-  prometheus:
-    image: prom/prometheus:v2.47.1
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus:/etc/prometheus
-    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
-    links:
-      - kafka-connect
-    networks:
-      - proxynet
-
-  grafana:
-    container_name: grafana
-    build:
-      context: ./grafana
-    ports:
-      - 3000:3000
-    environment:
-      GF_PATHS_DATA: /var/lib/grafana
-      GF_SECURITY_ADMIN_PASSWORD: kafka
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    depends_on:
-      - prometheus
-    networks:
-      - proxynet
-
 
 networks:
   proxynet:
-    name: custom_network                               # Общая пользовательская сеть Docker
-
-volumes:
-  kafka_0_data:
-  kafka_1_data:
-  kafka_2_data:
+    name: custom_network

@@ -9,4 +9,5 @@ RUN mvn package -DskipTests
 FROM openjdk:17
 ARG JAR_FILE=/build/target/*.jar
 COPY --from=build $JAR_FILE /opt/yandex-kafka/app.jar
+COPY kafka-0-creds /opt/yandex-kafka/kafka-0-creds
 ENTRYPOINT ["java", "-jar", "/opt/yandex-kafka/app.jar"]
