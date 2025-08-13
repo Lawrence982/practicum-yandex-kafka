@@ -15,9 +15,10 @@ spring:
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      group-id: kafka-connect-message
+      group-id: kafka-security-message
       properties:
         spring.json.trusted.packages: "ru.yandex.practicum.dto.*"
+        spring.json.value.default.type: "ru.yandex.practicum.dto.Notification"
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
     producer:
       asks: all # количество реплик, которые должны подтвердить синхронизацию
@@ -27,13 +28,8 @@ spring:
 
 
 topic:
-  users:
-    name: yandex.public.users
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
-  orders:
-    name: yandex.public.orders
+  notifications:
+    name: test-notifications
     partitions: 3
     replicas: 2
     min-insync-replicas: 2

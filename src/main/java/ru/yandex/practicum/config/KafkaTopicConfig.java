@@ -18,13 +18,8 @@ public class KafkaTopicConfig {
     private TopicsProperties topicsProperties;
 
     @Bean
-    NewTopic userTopic() {
-        return createTopic(topicsProperties.getUsers());
-    }
-
-    @Bean
-    NewTopic orderTopic() {
-        return createTopic(topicsProperties.getOrders());
+    NewTopic notificationsTopic() {
+        return createTopic(topicsProperties.getNotifications());
     }
 
     private NewTopic createTopic(TopicsProperties.Topic topic) {

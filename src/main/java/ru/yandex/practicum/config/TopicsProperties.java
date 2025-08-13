@@ -9,8 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "topic")
 public class TopicsProperties {
 
-    private Topic users;
-    private Topic orders;
+    private Topic notifications;
 
     @Getter
     @Setter
