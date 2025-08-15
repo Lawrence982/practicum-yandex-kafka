@@ -4,31 +4,41 @@ services:
   # Общие настройки Kafka для переиспользования в каждом брокере
   x-kafka-common:
     &kafka-common
-    image: bitnami/kafka:3.7
+    image: confluentinc/cp-kafka:7.4.4
     environment:
       &kafka-common-env
-      KAFKA_ENABLE_KRAFT: yes
       ALLOW_PLAINTEXT_LISTENER: yes
-      KAFKA_KRAFT_CLUSTER_ID: practicum
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SASL_SSL
-      KAFKA_CFG_SSL_CLIENT_AUTH: required
-      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
-      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: kafka-pass
-      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
-      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: kafka-pass
-      KAFKA_CFG_SSL_KEY_PASSWORD: kafka-pass
-      KAFKA_CERTIFICATE_PASSWORD: kafka-pass
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/config/jaas.conf"
+
+      # SSL Config
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEY_CREDENTIALS: kafka_sslkey_creds
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: kafka_keystore_creds
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: kafka_truststore_creds
 
       # SASL
-      KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
-      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_CLIENT_USERS: kafka
-      KAFKA_CLIENT_PASSWORDS: kafka-pass
+      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SECURITY_PROTOCOL: 'SASL_SSL'
+      KAFKA_LISTENER_NAME_BROKER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+      KAFKA_LISTENER_NAME_CONTROLLER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+
+      # ACL Config
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
+      KAFKA_SUPER_USERS: User:admin;User:ANONYMOUS
     networks:
       - proxynet
 
@@ -41,15 +51,15 @@ services:
       - "9093:9093"
     environment:
       <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,SASL_SSL://:9093,CONTROLLER://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-0:9092,SASL_SSL://kafka-0:9093
+      KAFKA_NODE_ID: 0
+      KAFKA_LISTENERS: SASL_SSL://:9093,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-0:9093
     volumes:
-      - ./kafka-0-creds/kafka.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks
-      - ./kafka-0-creds/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
-      - /jaas.conf:/bitnami/kafka/config/jaas/jaas.conf
+      - ./kafka-0-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-0:9092" ]
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-0:9093 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,15 +73,15 @@ services:
       - "9095:9095"
     environment:
       <<: *kafka-common-env
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,SASL_SSL://:9095,CONTROLLER://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,SASL_SSL://kafka-1:9095
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: SASL_SSL://:9095,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1:9095
     volumes:
-      - ./kafka-1-creds/kafka.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks
-      - ./kafka-1-creds/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
-      - /jaas.conf:/bitnami/kafka/config/jaas/jaas.conf
+      - ./kafka-1-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-1:9092" ]
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1:9095 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,39 +92,45 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9093,kafka-1:9095
-      KAFKA_CLUSTERS_0_NAME: kraft
-      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
-      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
-      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: kafka-pass
-      JAVA_TOOL_OPTIONS: -Djava.security.auth.login.config=/etc/kafka/jaas.conf
-
-
-    volumes:
-      - ./jaas.conf:/etc/kafka/jaas.conf
-      - ./kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
-    networks:
-      - proxynet
-
-  app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    environment:
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
-    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
-    ports:
-      - "8081:8080"
-      - "62924:62924"
     depends_on:
       kafka-0:
         condition: service_healthy
       kafka-1:
         condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9093,kafka-1:9095
+      KAFKA_CLUSTERS_0_NAME: kraft
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.keystore.jks
+      KAFKA_CLUSTERS_0_SSL_KEY_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_PASSWORD: kafka-pass
+    volumes:
+      - ./kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
+      - ./kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
     networks:
       - proxynet
+
+#  app:
+#    build:
+#      context: ./
+#      dockerfile: Dockerfile
+#    environment:
+#      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
+#    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
+#    ports:
+#      - "8081:8080"
+#      - "62924:62924"
+#    depends_on:
+#      kafka-0:
+#        condition: service_healthy
+#      kafka-1:
+#        condition: service_healthy
+#    networks:
+#      - proxynet
 
 networks:
   proxynet:
