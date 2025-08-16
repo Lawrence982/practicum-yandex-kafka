@@ -8,7 +8,7 @@ PID=$!
 # Ждем, когда брокер станет готов к управлению ACL
 until kafka-broker-api-versions --bootstrap-server kafka-0:9093 --command-config /etc/kafka/properties/client.properties; do
   echo "Waiting for Kafka to be ready..."
-  sleep 1
+  sleep 3
 done
 
 # Применяем ACL в нужной последовательности
