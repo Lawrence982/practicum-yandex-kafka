@@ -7,18 +7,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.dto.Notification;
-import ru.yandex.practicum.service.NotificationService;
+import ru.yandex.practicum.service.FirstNotificationService;
+import ru.yandex.practicum.service.SecondNotificationService;
 
 @RestController
 @RequestMapping("/notifications")
 public class NotificationController {
 
     @Autowired
-    NotificationService notificationService;
+    FirstNotificationService firstNotificationService;
 
-    @PostMapping("/notify")
-    public ResponseEntity<Void> notify(@RequestBody Notification notification) {
-        notificationService.sendNotification(notification);
+    @Autowired
+    SecondNotificationService secondNotificationService;
+
+    @PostMapping("/notifyFirst")
+    public ResponseEntity<Void> notifyFirst(@RequestBody Notification notification) {
+        firstNotificationService.sendFirstNotification(notification);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/notifySecond")
+    public ResponseEntity<Void> notifySecond(@RequestBody Notification notification) {
+        secondNotificationService.sendSecondNotification(notification);
         return ResponseEntity.ok().build();
     }
 }

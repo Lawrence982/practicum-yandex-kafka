@@ -7,12 +7,11 @@ services:
     image: confluentinc/cp-kafka:7.4.4
     environment:
       &kafka-common-env
-      ALLOW_PLAINTEXT_LISTENER: yes
       CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094,2@kafka-2:9094
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
       KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/config/jaas.conf"
@@ -58,6 +57,8 @@ services:
       - ./kafka-0-creds:/etc/kafka/secrets
       - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
       - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
+    command: ["bash", "/usr/local/bin/entrypoint.sh"]
     healthcheck:
       test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-0:9093 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
@@ -86,6 +87,27 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka-2:
+    <<: *kafka-common
+    container_name: kafka-2
+    restart: always
+    ports:
+      - "9097:9097"
+    environment:
+      <<: *kafka-common-env
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENERS: SASL_SSL://:9097,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-2:9097
+    volumes:
+      - ./kafka-2-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-2:9097 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Интерфейс управления Kafka (Kafka UI)
   ui:
     image: provectuslabs/kafka-ui:v0.7.2
@@ -97,8 +119,10 @@ services:
         condition: service_healthy
       kafka-1:
         condition: service_healthy
+      kafka-2:
+        condition: service_healthy
     environment:
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9093,kafka-1:9095
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:9093,kafka-1:9095,kafka-2:9097
       KAFKA_CLUSTERS_0_NAME: kraft
       KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
@@ -114,23 +138,25 @@ services:
     networks:
       - proxynet
 
-#  app:
-#    build:
-#      context: ./
-#      dockerfile: Dockerfile
-#    environment:
-#      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
-#    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
-#    ports:
-#      - "8081:8080"
-#      - "62924:62924"
-#    depends_on:
-#      kafka-0:
-#        condition: service_healthy
-#      kafka-1:
-#        condition: service_healthy
-#    networks:
-#      - proxynet
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
+    command: java $JAVA_TOOL_OPTIONS -jar app.jar.jar
+    ports:
+      - "8081:8080"
+      - "62924:62924"
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+    networks:
+      - proxynet
 
 networks:
   proxynet:

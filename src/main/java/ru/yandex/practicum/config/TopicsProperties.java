@@ -9,7 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "topic")
 public class TopicsProperties {
 
-    private Topic notifications;
+    private Topic first;
+    private Topic second;
 
     @Getter
     @Setter

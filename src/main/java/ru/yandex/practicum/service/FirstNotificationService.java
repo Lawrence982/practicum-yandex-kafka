@@ -13,15 +13,15 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class NotificationService {
+public class FirstNotificationService {
 
-    @Value("${topic.notifications.name}")
+    @Value("${topic.first.name}")
     private String topicName;
 
     @Autowired
     KafkaTemplate<String, Notification> kafkaTemplate;
 
-    public void sendNotification(Notification notification) {
+    public void sendFirstNotification(Notification notification) {
 
         notification.setId(UUID.randomUUID());
         log.info("Sending notification: {}", notification);

@@ -2,7 +2,7 @@ spring:
   application:
     name: yandex-kafka
   kafka:
-    bootstrap-servers: kafka-0:9093, kafka-1:9095
+    bootstrap-servers: kafka-0:9093, kafka-1:9095, kafka-2:9097
     ssl:
       trust-store-location: file:/opt/yandex-kafka/kafka-0-creds/kafka.truststore.jks
       trust-store-password: kafka-pass
@@ -12,7 +12,7 @@ spring:
     properties:
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka" password="kafka-pass";
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
@@ -29,8 +29,13 @@ spring:
 
 
 topic:
-  notifications:
-    name: test-notifications
+  first:
+    name: topic-1
+    partitions: 3
+    replicas: 2
+    min-insync-replicas: 2
+  second:
+    name: topic-2
     partitions: 3
     replicas: 2
     min-insync-replicas: 2

@@ -9,11 +9,11 @@ import ru.yandex.practicum.dto.Notification;
 
 @Slf4j
 @Component
-@KafkaListener(topics = "${topic.notifications.name}")
-public class NotificationConsumer {
+@KafkaListener(topics = "${topic.first.name}", containerFactory = "firstTopicKafkaListenerContainerFactory")
+public class FirstConsumer {
 
     @KafkaHandler
     public void handle(@Payload Notification notification) {
-        log.info("Consumer received notification: {}", notification);
+        log.info("First consumer received notification: {}", notification);
     }
 }
