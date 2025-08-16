@@ -26,6 +26,8 @@ spring:
       retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
 
 
 topic:
