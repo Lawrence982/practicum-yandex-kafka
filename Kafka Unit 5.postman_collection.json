@@ -1,0 +1,38 @@
+{
+	"info": {
+		"_postman_id": "7503e94a-eb0c-4ce7-a2be-f1ce4206198e",
+		"name": "Kafka Unit 5",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29835883"
+	},
+	"item": [
+		{
+			"name": "Topic 1 Notification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"John Doe\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8081/notifications/notifyFirst",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"notifications",
+						"notifyFirst"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
