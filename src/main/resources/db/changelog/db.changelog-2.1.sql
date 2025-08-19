@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS users_aud
     id BIGINT,
     rev INT REFERENCES revision (id),
     revtype SMALLINT ,
-    name VARCHAR(64) NOT NULL UNIQUE,
-    email VARCHAR(64) NOT NULL UNIQUE
+    name VARCHAR(64),
+    email VARCHAR(64)
 );
 
 --changeset bokov:3
