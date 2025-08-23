@@ -2,42 +2,32 @@ spring:
   application:
     name: yandex-kafka
   kafka:
-    bootstrap-servers: kafka-0:9093, kafka-1:9095, kafka-2:9097
+    bootstrap-servers: rc1d-akfhce988i4f36hi.mdb.yandexcloud.net:9091, rc1d-i9dbkctktl0sd1p2.mdb.yandexcloud.net:9091, rc1d-r746t9u49m7la3ah.mdb.yandexcloud.net:9091
     ssl:
-      trust-store-location: file:/opt/yandex-kafka/kafka-0-creds/kafka.truststore.jks
+      trust-store-location: file:/opt/yandex-kafka/security/ssl
       trust-store-password: kafka-pass
-      key-store-location: file:/opt/yandex-kafka/kafka-0-creds/kafka.keystore.jks
-      key-store-password: kafka-pass
-      key-password: kafka-pass
     properties:
       security.protocol: SASL_SSL
-      sasl.mechanism: PLAIN
-      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      sasl.mechanism: SCRAM-SHA-512
+      sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="kafka-user" password="kafka-pass";
+      schema.registry.url: https://rc1d-akfhce988i4f36hi.mdb.yandexcloud.net:443
+      schema.registry.ssl.truststore.location: /opt/yandex-kafka/security/ssl
+      schema.registry.ssl.truststore.password: kafka-pass
+      schema.registry.basic.auth.user.info: kafka-user:kafka-pass
+      schema.registry.basic.auth.credentials.source: USER_INFO
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      group-id: kafka-security-message
+      group-id: kafka-cloud-message
       properties:
         spring.json.trusted.packages: "ru.yandex.practicum.dto.*"
         spring.json.value.default.type: "ru.yandex.practicum.dto.Notification"
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer
     producer:
-      asks: all # количество реплик, которые должны подтвердить синхронизацию
-      retries: 3 # сколько раз клиент попытается повторно отправить сообщение после возникновения ошибки
+      acks: all
+      retries: 3
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        enable.idempotence: true
-
+      value-serializer: io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer
 
 topic:
-  first:
-    name: topic-1
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
-  second:
-    name: topic-2
-    partitions: 3
-    replicas: 2
-    min-insync-replicas: 2
+  name: topic-unit-6

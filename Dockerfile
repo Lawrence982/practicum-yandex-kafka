@@ -9,5 +9,5 @@ RUN mvn package -DskipTests
 FROM openjdk:17
 ARG JAR_FILE=/build/target/*.jar
 COPY --from=build $JAR_FILE /opt/yandex-kafka/app.jar
-COPY kafka-0-creds /opt/yandex-kafka/kafka-0-creds
-ENTRYPOINT ["sh", "-c", "sleep 10; exec java -jar /opt/yandex-kafka/app.jar"]
+COPY security/ssl /opt/yandex-kafka/security/ssl
+ENTRYPOINT ["java", "-jar", "/opt/yandex-kafka/app.jar"]
