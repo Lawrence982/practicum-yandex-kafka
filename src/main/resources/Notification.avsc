@@ -1,0 +1,9 @@
+{
+  "namespace": "ru.yandex.practicum.dto.avro",
+  "type": "record",
+  "name": "Notification",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": "string"}
+  ]
+}

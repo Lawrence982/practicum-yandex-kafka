@@ -11,6 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Notification {
+
     UUID id;
 
     @NotBlank

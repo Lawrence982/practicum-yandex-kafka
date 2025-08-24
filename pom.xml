@@ -57,11 +57,18 @@
             <artifactId>kafka-schema-registry-client</artifactId>
             <version>7.9.1</version>
         </dependency>
-        <!-- JSON Schema Serializer and Deserializer -->
+
         <dependency>
             <groupId>io.confluent</groupId>
-            <artifactId>kafka-json-schema-serializer</artifactId>
+            <artifactId>kafka-avro-serializer</artifactId>
             <version>7.9.1</version>
+        </dependency>
+
+        <!-- Avro -->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.11.4</version>
         </dependency>
 
         <dependency>
@@ -74,6 +81,24 @@
 
     <build>
         <plugins>
+            <!-- Avro Maven Plugin для генерации Java-классов из схем -->
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>1.11.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/src/main/resources</sourceDirectory>
+                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+                    <stringType>String</stringType>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

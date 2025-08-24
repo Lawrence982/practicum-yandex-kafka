@@ -21,13 +21,13 @@ spring:
       group-id: kafka-cloud-message
       properties:
         spring.json.trusted.packages: "ru.yandex.practicum.dto.*"
-        spring.json.value.default.type: "ru.yandex.practicum.dto.Notification"
-        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer
+        spring.json.value.default.type: "ru.yandex.practicum.dto.avro.Notification"
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.KafkaAvroDeserializer
     producer:
       acks: all
       retries: 3
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
 
 topic:
   name: topic-unit-6

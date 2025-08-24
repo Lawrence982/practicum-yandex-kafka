@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.dto.Notification;
+import ru.yandex.practicum.dto.avro.Notification;
 
 import java.util.UUID;
 
@@ -21,13 +21,19 @@ public class NotificationService {
     @Autowired
     KafkaTemplate<String, Notification> kafkaTemplate;
 
-    public void sendNotification(Notification notification) {
+    public void sendNotification(ru.yandex.practicum.dto.Notification notification) {
 
         notification.setId(UUID.randomUUID());
         log.info("Sending notification: {}", notification);
 
+        // конвертация POJO → Avro SpecificRecord
+        Notification avroNotification = Notification.newBuilder()
+                .setId(notification.getId().toString())
+                .setName(notification.getName())
+                .build();
+
         ProducerRecord<String, Notification> record =
-                new ProducerRecord<>(topicName, notification.getId().toString(), notification);
+                new ProducerRecord<>(topicName, avroNotification.getId(), avroNotification);
 
         kafkaTemplate.send(record)
                 .whenComplete((res, ex) -> {
