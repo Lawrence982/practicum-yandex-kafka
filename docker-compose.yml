@@ -1,141 +1,422 @@
 version: "3.5"
 services:
 
-  app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
+  #### Cluster 1
+  # Общие настройки Kafka для переиспользования в каждом брокере
+  x-kafka-common-cluster:
+    &kafka-common-cluster
+    image: confluentinc/cp-kafka:7.4.4
     environment:
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
-    ports:
-      - "8081:8080"
-      - "62924:62924"
+      &kafka-common-cluster-env
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9094,1@kafka-1:9094,2@kafka-2:9094
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/config/jaas.conf"
+
+      # SSL Config
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEY_CREDENTIALS: kafka_sslkey_creds
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: kafka_keystore_creds
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: kafka_truststore_creds
+
+      # SASL
+      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SECURITY_PROTOCOL: 'SASL_SSL'
+      KAFKA_LISTENER_NAME_BROKER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+      KAFKA_LISTENER_NAME_CONTROLLER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+
+      # ACL Config
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
+      KAFKA_SUPER_USERS: User:admin;User:ANONYMOUS
     networks:
       - proxynet
 
-  nifi:
-    image: apache/nifi:1.21.0
-    container_name: nifi
-    user: "root"
+  # Первый брокер Kafka
+  kafka-0:
+    <<: *kafka-common-cluster
+    container_name: kafka-0
+    restart: always
+    ports:
+      - "7093:7093"
+    environment:
+      <<: *kafka-common-cluster-env
+      KAFKA_NODE_ID: 0
+      KAFKA_LISTENERS: SASL_SSL://:7093,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-0:7093
+    volumes:
+      - ./creds/cluster-0/kafka-0-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
+#    command: [ "bash", "/usr/local/bin/entrypoint.sh" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-0:7093 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Второй брокер Kafka
+  kafka-1:
+    <<: *kafka-common-cluster
+    container_name: kafka-1
+    restart: always
+    ports:
+      - "7095:7095"
+    environment:
+      <<: *kafka-common-cluster-env
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: SASL_SSL://:7095,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1:7095
+    volumes:
+      - ./creds/cluster-0/kafka-1-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1:7095 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Третий брокер Kafka
+  kafka-2:
+    <<: *kafka-common-cluster
+    container_name: kafka-2
+    restart: always
+    ports:
+      - "7097:7097"
+    environment:
+      <<: *kafka-common-cluster-env
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENERS: SASL_SSL://:7097,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-2:7097
+    volumes:
+      - ./creds/cluster-0/kafka-2-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-2:7097 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Интерфейс управления Kafka (Kafka UI) на первом кластере
+  ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    restart: always
     ports:
       - "8080:8080"
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
     environment:
-      NIFI_WEB_HTTP_PORT: 8080
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-0:7093,kafka-1:7095,kafka-2:7097
+      KAFKA_CLUSTERS_0_NAME: kraft
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.keystore.jks
+      KAFKA_CLUSTERS_0_SSL_KEY_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_PASSWORD: kafka-pass
     volumes:
-      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-      - ./security/ssl:/opt/yandex-kafka/security/ssl
+      - ./creds/cluster-0/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
+      - ./creds/cluster-0/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
     networks:
       - proxynet
 
-  hadoop-namenode:
-    image: apache/hadoop:3.4.1
-    container_name: hadoop-namenode
-    hostname: hadoop-namenode
-    user: "root"
+
+
+
+  # Cluster 2
+  # Общие настройки Kafka для переиспользования в каждом брокере
+  x-kafka-common-cluster-1:
+    &kafka-common-cluster-1
+    image: confluentinc/cp-kafka:7.4.4
+    environment:
+      &kafka-common-cluster-1-env
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q6A=='
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-1-0:9094,1@kafka-1-1:9094,2@kafka-1-2:9094
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/config/jaas.conf"
+
+      # SSL Config
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/
+      KAFKA_SSL_KEY_CREDENTIALS: kafka_sslkey_creds
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: kafka_keystore_creds
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: kafka_truststore_creds
+
+      # SASL
+      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SECURITY_PROTOCOL: 'SASL_SSL'
+      KAFKA_LISTENER_NAME_BROKER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+      KAFKA_LISTENER_NAME_CONTROLLER_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin" user_admin="admin";
+
+      # ACL Config
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
+      KAFKA_SUPER_USERS: User:admin;User:ANONYMOUS
+    networks:
+      - proxynet
+
+  # Первый брокер Kafka
+  kafka-1-0:
+    <<: *kafka-common-cluster-1
+    container_name: kafka-1-0
     restart: always
-    platform: linux/amd64
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"   # Ограничение использования CPU
-          memory: "2g"  # Ограничение использования RAM
-    shm_size: 10G
     ports:
-      - "9870:9870"  # HTTP-порт для Web UI HDFS NameNode
-      - "9000:9000"  # RPC порт для запросов к NameNode
-    networks:
-      - proxynet
+      - "9093:9093"
+    environment:
+      <<: *kafka-common-cluster-1-env
+      KAFKA_NODE_ID: 0
+      KAFKA_LISTENERS: SASL_SSL://:9093,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1-0:9093
     volumes:
-      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-      - ./namenode_entrypoint.sh:/namenode_entrypoint.sh
-    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
-    command: ["hdfs", "namenode"]
+      - ./creds/cluster-1/kafka-0-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
+    #    command: [ "bash", "/usr/local/bin/entrypoint.sh" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1-0:9093 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-
-  hadoop-datanode-1:
-    image: apache/hadoop:3.4.1
-    container_name: hadoop-datanode-1
-    hostname: hadoop-datanode-1
-    user: "root"
+  # Второй брокер Kafka
+  kafka-1-1:
+    <<: *kafka-common-cluster-1
+    container_name: kafka-1-1
     restart: always
-    platform: linux/amd64
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"   # Ограничение использования CPU
-          memory: "2g"  # Ограничение использования RAM
-    shm_size: 10G
+    ports:
+      - "9095:9095"
+    environment:
+      <<: *kafka-common-cluster-1-env
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: SASL_SSL://:9095,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1-1:9095
+    volumes:
+      - ./creds/cluster-1/kafka-1-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1-1:9095 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Третий брокер Kafka
+  kafka-1-2:
+    <<: *kafka-common-cluster-1
+    container_name: kafka-1-2
+    restart: always
+    ports:
+      - "9097:9097"
+    environment:
+      <<: *kafka-common-cluster-1-env
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENERS: SASL_SSL://:9097,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1-2:9097
+    volumes:
+      - ./creds/cluster-1/kafka-2-creds:/etc/kafka/secrets
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./secrets/client.properties:/etc/kafka/properties/client.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1-2:9097 --command-config /etc/kafka/properties/client.properties" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Интерфейс управления Kafka (Kafka UI) на втором кластере
+  ui-1:
+    image: provectuslabs/kafka-ui:v0.7.2
+    restart: always
+    ports:
+      - "8081:8080"
     depends_on:
-      - hadoop-namenode
-    ports:
-      - "9864:9864"  # HTTP-порт для Web UI DataNode №1
-      - "9970:9970"  # RPC порт для запросов от NameNode
+      kafka-1-0:
+        condition: service_healthy
+      kafka-1-1:
+        condition: service_healthy
+      kafka-1-2:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-1-0:9093,kafka-1-1:9095,kafka-1-2:9095
+      KAFKA_CLUSTERS_0_NAME: kraft
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.keystore.jks
+      KAFKA_CLUSTERS_0_SSL_KEY_PASSWORD: kafka-pass
+      KAFKA_CLUSTERS_0_SSL_KEYSTORE_PASSWORD: kafka-pass
+    volumes:
+      - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
+      - ./creds/cluster-1/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
     networks:
       - proxynet
-    volumes:
-      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-      - ./config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-    command: ["hdfs", "datanode"]
 
-
-  hadoop-datanode-2:
-    image: apache/hadoop:3.4.1
-    container_name: hadoop-datanode-2
-    hostname: hadoop-datanode-2
-    user: "root"
-    restart: always
-    platform: linux/amd64
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"   # Ограничение использования CPU
-          memory: "2g"  # Ограничение использования RAM
-    shm_size: 10G
-    depends_on:
-      - hadoop-namenode
-    ports:
-      - "9865:9865"  # HTTP-порт для Web UI DataNode №2
-      - "9971:9971"  # RPC порт для запросов от NameNode
-    networks:
-      - proxynet
-    volumes:
-      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-      - ./config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-    command: ["hdfs", "datanode"]
-
-
-  hadoop-datanode-3:
-    image: apache/hadoop:3.4.1
-    container_name: hadoop-datanode-3
-    hostname: hadoop-datanode-3
-    user: "root"
-    restart: always
-    platform: linux/amd64
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"   # Ограничение использования CPU
-          memory: "2g"  # Ограничение использования RAM
-    shm_size: 10G
-    depends_on:
-      - hadoop-namenode
-    ports:
-      - "9866:9866"  # HTTP-порт для Web UI DataNode №3
-      - "9972:9972"  # RPC порт для запросов от NameNode
-    networks:
-      - proxynet
-    volumes:
-      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-      - ./config/hdfs-site-datanode-3.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-    command: ["hdfs", "datanode"]
+#  app:
+#    build:
+#      context: ./
+#      dockerfile: Dockerfile
+#    environment:
+#      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
+#    ports:
+#      - "8081:8080"
+#      - "62924:62924"
+#    networks:
+#      - proxynet
+#
+#  nifi:
+#    image: apache/nifi:1.21.0
+#    container_name: nifi
+#    user: "root"
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      NIFI_WEB_HTTP_PORT: 8080
+#    volumes:
+#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+#      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+#      - ./security/ssl:/opt/yandex-kafka/security/ssl
+#    networks:
+#      - proxynet
+#
+#  hadoop-namenode:
+#    image: apache/hadoop:3.4.1
+#    container_name: hadoop-namenode
+#    hostname: hadoop-namenode
+#    user: "root"
+#    restart: always
+#    platform: linux/amd64
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "1.0"   # Ограничение использования CPU
+#          memory: "2g"  # Ограничение использования RAM
+#    shm_size: 10G
+#    ports:
+#      - "9870:9870"  # HTTP-порт для Web UI HDFS NameNode
+#      - "9000:9000"  # RPC порт для запросов к NameNode
+#    networks:
+#      - proxynet
+#    volumes:
+#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+#      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+#      - ./namenode_entrypoint.sh:/namenode_entrypoint.sh
+#    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
+#    command: ["hdfs", "namenode"]
+#
+#
+#  hadoop-datanode-1:
+#    image: apache/hadoop:3.4.1
+#    container_name: hadoop-datanode-1
+#    hostname: hadoop-datanode-1
+#    user: "root"
+#    restart: always
+#    platform: linux/amd64
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "1.0"   # Ограничение использования CPU
+#          memory: "2g"  # Ограничение использования RAM
+#    shm_size: 10G
+#    depends_on:
+#      - hadoop-namenode
+#    ports:
+#      - "9864:9864"  # HTTP-порт для Web UI DataNode №1
+#      - "9970:9970"  # RPC порт для запросов от NameNode
+#    networks:
+#      - proxynet
+#    volumes:
+#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+#      - ./config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
+#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+#    command: ["hdfs", "datanode"]
+#
+#
+#  hadoop-datanode-2:
+#    image: apache/hadoop:3.4.1
+#    container_name: hadoop-datanode-2
+#    hostname: hadoop-datanode-2
+#    user: "root"
+#    restart: always
+#    platform: linux/amd64
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "1.0"   # Ограничение использования CPU
+#          memory: "2g"  # Ограничение использования RAM
+#    shm_size: 10G
+#    depends_on:
+#      - hadoop-namenode
+#    ports:
+#      - "9865:9865"  # HTTP-порт для Web UI DataNode №2
+#      - "9971:9971"  # RPC порт для запросов от NameNode
+#    networks:
+#      - proxynet
+#    volumes:
+#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+#      - ./config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
+#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+#    command: ["hdfs", "datanode"]
+#
+#
+#  hadoop-datanode-3:
+#    image: apache/hadoop:3.4.1
+#    container_name: hadoop-datanode-3
+#    hostname: hadoop-datanode-3
+#    user: "root"
+#    restart: always
+#    platform: linux/amd64
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "1.0"   # Ограничение использования CPU
+#          memory: "2g"  # Ограничение использования RAM
+#    shm_size: 10G
+#    depends_on:
+#      - hadoop-namenode
+#    ports:
+#      - "9866:9866"  # HTTP-порт для Web UI DataNode №3
+#      - "9972:9972"  # RPC порт для запросов от NameNode
+#    networks:
+#      - proxynet
+#    volumes:
+#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+#      - ./config/hdfs-site-datanode-3.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
+#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+#    command: ["hdfs", "datanode"]
 
 networks:
   proxynet:
