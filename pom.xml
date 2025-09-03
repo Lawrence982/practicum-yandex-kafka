@@ -10,9 +10,9 @@
     </parent>
 
     <groupId>ru.yandex.practicum</groupId>
-    <artifactId>kafka-unit-final</artifactId>
+    <artifactId>kafka-final-unit</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>practicum-yandex-kafka-unit-final</name>
+    <name>practicum-yandex-kafka-final-unit</name>
     <description>Demo project for Kafka</description>
 
     <properties>

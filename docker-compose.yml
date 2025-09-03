@@ -5,7 +5,7 @@ services:
   # Общие настройки Kafka для переиспользования в каждом брокере
   x-kafka-common-cluster:
     &kafka-common-cluster
-    image: confluentinc/cp-kafka:7.4.4
+    image: confluentinc/cp-kafka:7.5.0
     environment:
       &kafka-common-cluster-env
       CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
@@ -147,10 +147,10 @@ services:
   # Общие настройки Kafka для переиспользования в каждом брокере
   x-kafka-common-cluster-1:
     &kafka-common-cluster-1
-    image: confluentinc/cp-kafka:7.4.4
+    image: confluentinc/cp-kafka:7.5.0
     environment:
       &kafka-common-cluster-1-env
-      CLUSTER_ID: 'ciWo7IWazngRchmPES6q6A=='
+      CLUSTER_ID: 'xtzWWN4bTjitpL3kfd9s5g'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -314,6 +314,12 @@ services:
       - ./creds/cluster-0/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
     networks:
       - proxynet
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://schema-registry:8081/subjects || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   schema-registry-1:
     image: confluentinc/cp-schema-registry:7.5.0
@@ -340,10 +346,70 @@ services:
       - SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID=schema-registry-group
       - SCHEMA_REGISTRY_LEADER_ELIGIBILITY=true
     ports:
-      - "8083:8081"
+      - "9081:8081"
     volumes:
       - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
       - ./creds/cluster-1/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
+    networks:
+      - proxynet
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://schema-registry:8081/subjects || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
+  kafka-connect:
+    build:
+      context: ./kafka-connect
+    command: [ "/usr/bin/connect-mirror-maker", "/etc/mm2/mm2.properties" ]
+    hostname: kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      schema-registry-1:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+      - "9875:9875"
+      - "9876:9876"
+    environment:
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.7.1.jar
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect=INFO,org.apache.zookeeper=ERROR
+      KAFKA_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/kafka/connect-log4j.properties"
+
+      # Конвертеры
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+
+      # Export JMX metrics to :9876/metrics for Prometheus
+      KAFKA_JMX_PORT: '9875'
+      KAFKA_OPTS: "-javaagent:/opt/jmx_prometheus_javaagent-0.18.0.jar=9876:/opt/kafka-connect.yml -Djava.security.auth.login.config=/etc/kafka/config/jaas.conf"
+
+      # Пути к плагинам
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+
+    volumes:
+#      - ./confluent-hub-components/:/etc/kafka-connect/jars
+      - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
+      - ./mm2/mm2.properties:/etc/mm2/mm2.properties:ro
+      - ./creds/cluster-0/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
+      - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka-1.truststore.jks
     networks:
       - proxynet
 
