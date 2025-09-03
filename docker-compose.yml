@@ -425,129 +425,129 @@ services:
 #    networks:
 #      - proxynet
 #
-#  nifi:
-#    image: apache/nifi:1.21.0
-#    container_name: nifi
-#    user: "root"
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      NIFI_WEB_HTTP_PORT: 8080
-#    volumes:
-#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-#      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-#      - ./security/ssl:/opt/yandex-kafka/security/ssl
-#    networks:
-#      - proxynet
-#
-#  hadoop-namenode:
-#    image: apache/hadoop:3.4.1
-#    container_name: hadoop-namenode
-#    hostname: hadoop-namenode
-#    user: "root"
-#    restart: always
-#    platform: linux/amd64
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "1.0"   # Ограничение использования CPU
-#          memory: "2g"  # Ограничение использования RAM
-#    shm_size: 10G
-#    ports:
-#      - "9870:9870"  # HTTP-порт для Web UI HDFS NameNode
-#      - "9000:9000"  # RPC порт для запросов к NameNode
-#    networks:
-#      - proxynet
-#    volumes:
-#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-#      - ./config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-#      - ./namenode_entrypoint.sh:/namenode_entrypoint.sh
-#    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
-#    command: ["hdfs", "namenode"]
-#
-#
-#  hadoop-datanode-1:
-#    image: apache/hadoop:3.4.1
-#    container_name: hadoop-datanode-1
-#    hostname: hadoop-datanode-1
-#    user: "root"
-#    restart: always
-#    platform: linux/amd64
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "1.0"   # Ограничение использования CPU
-#          memory: "2g"  # Ограничение использования RAM
-#    shm_size: 10G
-#    depends_on:
-#      - hadoop-namenode
-#    ports:
-#      - "9864:9864"  # HTTP-порт для Web UI DataNode №1
-#      - "9970:9970"  # RPC порт для запросов от NameNode
-#    networks:
-#      - proxynet
-#    volumes:
-#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-#      - ./config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-#    command: ["hdfs", "datanode"]
-#
-#
-#  hadoop-datanode-2:
-#    image: apache/hadoop:3.4.1
-#    container_name: hadoop-datanode-2
-#    hostname: hadoop-datanode-2
-#    user: "root"
-#    restart: always
-#    platform: linux/amd64
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "1.0"   # Ограничение использования CPU
-#          memory: "2g"  # Ограничение использования RAM
-#    shm_size: 10G
-#    depends_on:
-#      - hadoop-namenode
-#    ports:
-#      - "9865:9865"  # HTTP-порт для Web UI DataNode №2
-#      - "9971:9971"  # RPC порт для запросов от NameNode
-#    networks:
-#      - proxynet
-#    volumes:
-#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-#      - ./config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-#    command: ["hdfs", "datanode"]
-#
-#
-#  hadoop-datanode-3:
-#    image: apache/hadoop:3.4.1
-#    container_name: hadoop-datanode-3
-#    hostname: hadoop-datanode-3
-#    user: "root"
-#    restart: always
-#    platform: linux/amd64
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "1.0"   # Ограничение использования CPU
-#          memory: "2g"  # Ограничение использования RAM
-#    shm_size: 10G
-#    depends_on:
-#      - hadoop-namenode
-#    ports:
-#      - "9866:9866"  # HTTP-порт для Web UI DataNode №3
-#      - "9972:9972"  # RPC порт для запросов от NameNode
-#    networks:
-#      - proxynet
-#    volumes:
-#      - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
-#      - ./config/hdfs-site-datanode-3.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
-#      - ./datanode_entrypoint.sh:/datanode_entrypoint.sh
-#    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
-#    command: ["hdfs", "datanode"]
+  nifi:
+    image: apache/nifi:1.21.0
+    container_name: nifi
+    user: "root"
+    ports:
+      - "9080:9080"
+    environment:
+      NIFI_WEB_HTTP_PORT: 9080
+    volumes:
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop-config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/opt/yandex-kafka/security/kafka.truststore.jks
+    networks:
+      - proxynet
+
+  hadoop-namenode:
+    image: apache/hadoop:3.4.1
+    container_name: hadoop-namenode
+    hostname: hadoop-namenode
+    user: "root"
+    restart: always
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"   # Ограничение использования CPU
+          memory: "2g"  # Ограничение использования RAM
+    shm_size: 10G
+    ports:
+      - "9870:9870"  # HTTP-порт для Web UI HDFS NameNode
+      - "9000:9000"  # RPC порт для запросов к NameNode
+    networks:
+      - proxynet
+    volumes:
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop-config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop-config/namenode_entrypoint.sh:/namenode_entrypoint.sh
+    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
+    command: ["hdfs", "namenode"]
+
+
+  hadoop-datanode-1:
+    image: apache/hadoop:3.4.1
+    container_name: hadoop-datanode-1
+    hostname: hadoop-datanode-1
+    user: "root"
+    restart: always
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"   # Ограничение использования CPU
+          memory: "2g"  # Ограничение использования RAM
+    shm_size: 10G
+    depends_on:
+      - hadoop-namenode
+    ports:
+      - "9864:9864"  # HTTP-порт для Web UI DataNode №1
+      - "9970:9970"  # RPC порт для запросов от NameNode
+    networks:
+      - proxynet
+    volumes:
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop-config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop-config/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+
+
+  hadoop-datanode-2:
+    image: apache/hadoop:3.4.1
+    container_name: hadoop-datanode-2
+    hostname: hadoop-datanode-2
+    user: "root"
+    restart: always
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"   # Ограничение использования CPU
+          memory: "2g"  # Ограничение использования RAM
+    shm_size: 10G
+    depends_on:
+      - hadoop-namenode
+    ports:
+      - "9865:9865"  # HTTP-порт для Web UI DataNode №2
+      - "9971:9971"  # RPC порт для запросов от NameNode
+    networks:
+      - proxynet
+    volumes:
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop-config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop-config/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+
+
+  hadoop-datanode-3:
+    image: apache/hadoop:3.4.1
+    container_name: hadoop-datanode-3
+    hostname: hadoop-datanode-3
+    user: "root"
+    restart: always
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"   # Ограничение использования CPU
+          memory: "2g"  # Ограничение использования RAM
+    shm_size: 10G
+    depends_on:
+      - hadoop-namenode
+    ports:
+      - "9866:9866"  # HTTP-порт для Web UI DataNode №3
+      - "9972:9972"  # RPC порт для запросов от NameNode
+    networks:
+      - proxynet
+    volumes:
+      - ./hadoop-config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop-config/hdfs-site-datanode-3.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop-config/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
 
 networks:
   proxynet:
