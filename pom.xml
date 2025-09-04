@@ -2,6 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.yandex.practicum</groupId>
+    <artifactId>kafka-final-unit</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -9,17 +15,21 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>ru.yandex.practicum</groupId>
-    <artifactId>kafka-final-unit</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>practicum-yandex-kafka-final-unit</name>
-    <description>Demo project for Kafka</description>
+    <modules>
+        <module>yandex-practicum-application</module>
+        <module>yandex-practicum-common</module>
+        <module>yandex-practicum-shop-api</module>
+        <module>yandex-practicum-stream-handling</module>
+        <module>yandex-practicum-client-api</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <lombok-version>1.18.28</lombok-version>
+        <lombok-version>1.18.38</lombok-version>
+        <kafka-avro-version>7.9.1</kafka-avro-version>
+        <avro-version>1.11.4</avro-version>
     </properties>
 
     <repositories>
@@ -30,80 +40,82 @@
         </repository>
     </repositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ru.yandex.practicum</groupId>
+                <artifactId>yandex-practicum-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>ru.yandex.practicum</groupId>
+                <artifactId>yandex-practicum-shop-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>ru.yandex.practicum</groupId>
+                <artifactId>yandex-practicum-client-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>ru.yandex.practicum</groupId>
+                <artifactId>yandex-practicum-stream-handling</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-schema-registry-client -->
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-schema-registry-client</artifactId>
-            <version>7.9.1</version>
-        </dependency>
+            <!-- https://mvnrepository.com/artifact/io.confluent/kafka-schema-registry-client -->
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry-client</artifactId>
+                <version>${kafka-avro-version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.9.1</version>
-        </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-streams-avro-serde</artifactId>
+                <version>${kafka-avro-version}</version>
+            </dependency>
 
-        <!-- Avro -->
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>1.11.4</version>
-        </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-avro-serializer</artifactId>
+                <version>${kafka-avro-version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok-version}</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+            <!-- Avro -->
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${avro-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok-version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
-        <plugins>
-            <!-- Avro Maven Plugin для генерации Java-классов из схем -->
-            <plugin>
-                <groupId>org.apache.avro</groupId>
-                <artifactId>avro-maven-plugin</artifactId>
-                <version>1.11.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>schema</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <sourceDirectory>${project.basedir}/src/main/resources</sourceDirectory>
-                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
-                    <stringType>String</stringType>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!-- Avro Maven Plugin для генерации Java-классов из схем -->
+                <plugin>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro-maven-plugin</artifactId>
+                    <version>1.11.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>

@@ -1,0 +1,10 @@
+{
+  "namespace": "ru.yandex.practicum.model.avro",
+  "type": "record",
+  "name": "Product",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "sku", "type": "string"}
+  ]
+}

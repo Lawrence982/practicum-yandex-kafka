@@ -110,6 +110,7 @@
                 </entry>
                 <entry>
                     <key>Truststore Password</key>
+                    <value>kafka-pass</value>
                 </entry>
                 <entry>
                     <key>Truststore Type</key>
@@ -524,7 +525,7 @@
             <properties>
                 <entry>
                     <key>url</key>
-                    <value>https://schema-registry:8081</value>
+                    <value>https://schema-registry:443</value>
                 </entry>
                 <entry>
                     <key>ssl-context</key>
@@ -781,7 +782,7 @@
                 <name>success</name>
                 <retry>false</retry>
             </relationships>
-            <state>STOPPED</state>
+            <state>ENABLED</state>
             <style/>
             <type>org.apache.nifi.processors.hadoop.PutHDFS</type>
         </processors>
@@ -996,7 +997,7 @@
                     </entry>
                     <entry>
                         <key>topic</key>
-                        <value>filtered_products</value>
+                        <value>filtered-products-topic</value>
                     </entry>
                     <entry>
                         <key>topic_type</key>
@@ -1107,7 +1108,7 @@
                 <name>success</name>
                 <retry>false</retry>
             </relationships>
-            <state>STOPPED</state>
+            <state>ENABLED</state>
             <style/>
             <type>org.apache.nifi.processors.kafka.pubsub.ConsumeKafkaRecord_2_0</type>
         </processors>
