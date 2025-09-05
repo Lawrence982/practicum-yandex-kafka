@@ -49,15 +49,22 @@ services:
     restart: always
     ports:
       - "7093:7093"
+      - "9991:9991"
+      - "7071:7071"
     environment:
       <<: *kafka-common-cluster-env
       KAFKA_NODE_ID: 0
       KAFKA_LISTENERS: SASL_SSL://:7093,CONTROLLER://:9094
       KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-0:7093
+      KAFKA_JMX_PORT: 9991
+      EXTRA_ARGS: '-javaagent:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar=7071:/etc/jmx_exporter/config.yml'
+      JMX_PROMETHEUS_PORT: 7071
     volumes:
       - ./creds/cluster-0/kafka-0-creds:/etc/kafka/secrets
       - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
       - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar
+      - ./etc/jmx_exporter/config_kafka-0.yml:/etc/jmx_exporter/config.yml
 #      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
 #    command: [ "bash", "/usr/local/bin/entrypoint.sh" ]
     healthcheck:
@@ -73,15 +80,22 @@ services:
     restart: always
     ports:
       - "7095:7095"
+      - "9992:9992"
+      - "7072:7072"
     environment:
       <<: *kafka-common-cluster-env
       KAFKA_NODE_ID: 1
       KAFKA_LISTENERS: SASL_SSL://:7095,CONTROLLER://:9094
       KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1:7095
+      KAFKA_JMX_PORT: 9992
+      EXTRA_ARGS: '-javaagent:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar=7072:/etc/jmx_exporter/config.yml'
+      JMX_PROMETHEUS_PORT: 7072
     volumes:
       - ./creds/cluster-0/kafka-1-creds:/etc/kafka/secrets
       - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
       - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar
+      - ./etc/jmx_exporter/config_kafka-1.yml:/etc/jmx_exporter/config.yml
     healthcheck:
       test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1:7095 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
@@ -95,15 +109,22 @@ services:
     restart: always
     ports:
       - "7097:7097"
+      - "9993:9993"
+      - "7073:7073"
     environment:
       <<: *kafka-common-cluster-env
       KAFKA_NODE_ID: 2
       KAFKA_LISTENERS: SASL_SSL://:7097,CONTROLLER://:9094
       KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-2:7097
+      KAFKA_JMX_PORT: 9993
+      EXTRA_ARGS: '-javaagent:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar=7073:/etc/jmx_exporter/config.yml'
+      JMX_PROMETHEUS_PORT: 7073
     volumes:
       - ./creds/cluster-0/kafka-2-creds:/etc/kafka/secrets
       - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
       - ./secrets/client.properties:/etc/kafka/properties/client.properties
+      - ./etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar:/etc/jmx_exporter/jmx_prometheus_javaagent-0.18.0.jar
+      - ./etc/jmx_exporter/config_kafka-2.yml:/etc/jmx_exporter/config.yml
     healthcheck:
       test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-2:7097 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
@@ -190,12 +211,12 @@ services:
     container_name: kafka-1-0
     restart: always
     ports:
-      - "9093:9093"
+      - "9092:9092"
     environment:
       <<: *kafka-common-cluster-1-env
       KAFKA_NODE_ID: 0
-      KAFKA_LISTENERS: SASL_SSL://:9093,CONTROLLER://:9094
-      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1-0:9093
+      KAFKA_LISTENERS: SASL_SSL://:9092,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka-1-0:9092
     volumes:
       - ./creds/cluster-1/kafka-0-creds:/etc/kafka/secrets
       - ./secrets/jaas.conf:/etc/kafka/config/jaas.conf
@@ -203,7 +224,7 @@ services:
 #      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
     #    command: [ "bash", "/usr/local/bin/entrypoint.sh" ]
     healthcheck:
-      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1-0:9093 --command-config /etc/kafka/properties/client.properties" ]
+      test: [ "CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server kafka-1-0:9092 --command-config /etc/kafka/properties/client.properties" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -266,7 +287,7 @@ services:
       kafka-1-2:
         condition: service_healthy
     environment:
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-1-0:9093,kafka-1-1:9095,kafka-1-2:9095
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka-1-0:9092,kafka-1-1:9095,kafka-1-2:9095
       KAFKA_CLUSTERS_0_NAME: kraft
       KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
@@ -305,10 +326,6 @@ services:
       - SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_LOCATION=/etc/kafka/secrets/kafka.keystore.jks
       - SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_PASSWORD=kafka-pass
       - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE=JKS
-
-      - SCHEMA_REGISTRY_SSL_TRUSTSTORE_LOCATION=/etc/kafka/secrets/kafka.truststore.jks
-      - SCHEMA_REGISTRY_SSL_TRUSTSTORE_PASSWORD=kafka-pass
-
       - SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID=schema-registry-group
       - SCHEMA_REGISTRY_LEADER_ELIGIBILITY=true
     ports:
@@ -325,55 +342,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-
-#  schema-registry-1:
-#    image: confluentinc/cp-schema-registry:7.5.0
-#    container_name: schema-registry-1
-#    depends_on:
-#      kafka-1-0:
-#        condition: service_healthy
-#      kafka-1-1:
-#        condition: service_healthy
-#      kafka-1-2:
-#        condition: service_healthy
-#    environment:
-#      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=SASL_SSL://kafka-1-0:9093,kafka-1-1:9095,kafka-1-2:9095
-#      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:9081,https://0.0.0.0:443
-#      - SCHEMA_REGISTRY_HOST_NAME=localhost
-#      - SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL=SASL_SSL
-#      - SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM=PLAIN
-#      - SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
-#      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION=/etc/kafka/secrets/kafka.truststore.jks
-#      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD=kafka-pass
-#      - SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_LOCATION=/etc/kafka/secrets/kafka.keystore.jks
-#      - SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_PASSWORD=kafka-pass
-#      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE=JKS
-#
-##      - SCHEMA_REGISTRY_SSL_KEYSTORE_LOCATION=/etc/kafka/secrets/kafka-1.keystore.jks
-##      - SCHEMA_REGISTRY_SSL_KEYSTORE_PASSWORD=kafka-pass
-#      - SCHEMA_REGISTRY_SSL_TRUSTSTORE_LOCATION=/etc/kafka/secrets/kafka-1.truststore.jks
-#      - SCHEMA_REGISTRY_SSL_TRUSTSTORE_PASSWORD=kafka-pass
-##      - SCHEMA_REGISTRY_SSL_TRUSTSTORE_TYPE=JKS
-#
-#      - SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID=schema-registry-group
-#      - SCHEMA_REGISTRY_LEADER_ELIGIBILITY=true
-#    ports:
-#      - "9081:8081"
-#      - "443:443"
-#    volumes:
-#      - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
-#      - ./creds/cluster-1/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka.keystore.jks
-#      - ./creds/cluster-1/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka-1.truststore.jks
-#      - ./creds/cluster-1/kafka-0-creds/kafka.keystore.jks:/etc/kafka/secrets/kafka-1.keystore.jks
-#    networks:
-#      - proxynet
-#    healthcheck:
-#      test: [ "CMD-SHELL", "wget -q --spider http://schema-registry-1:9081/subjects || exit 1" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#      start_period: 30s
-
 
   kafka-connect:
     build:
@@ -434,11 +402,21 @@ services:
       dockerfile: Dockerfile
     environment:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:62924
+    depends_on:
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
     ports:
       - "8085:8080"
       - "62924:62924"
     networks:
       - proxynet
+
+
+
 
   nifi:
     image: apache/nifi:1.21.0
@@ -563,6 +541,53 @@ services:
       - ./hadoop-config/datanode_entrypoint.sh:/datanode_entrypoint.sh
     entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
     command: ["hdfs", "datanode"]
+
+
+
+  prometheus:
+    image: "prom/prometheus:${PROMETHEUS_VERSION}"
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./etc/prometheus/alert.rules:/etc/prometheus/alert.rules
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+    container_name: prometheus
+    networks:
+      - proxynet
+
+  grafana:
+    container_name: grafana
+    build:
+      context: ./grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_SECURITY_ADMIN_PASSWORD: kafka
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - proxynet
+
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    restart: unless-stopped
+    container_name: alertmanager
+    volumes:
+      - ./etc/alertmanager/config.yml:/etc/alertmanager/config.yml
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--log.level=debug'
+    ports:
+      - "9093:9093"
+    networks:
+      - proxynet
 
 networks:
   proxynet:

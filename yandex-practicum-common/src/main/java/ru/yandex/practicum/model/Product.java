@@ -1,5 +1,7 @@
 package ru.yandex.practicum.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,9 +10,10 @@ import java.util.List;
 
 @Builder
 @Data
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Product {
 
-    private String id;
+    private String productId;
     private String name;
     private String description;
     private Price price;
@@ -20,7 +23,7 @@ public class Product {
     private String sku;
     private List<String> tags;
     private List<Image> images;
-    private List<Specification> specifications;
+    private Specification specifications;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String index;

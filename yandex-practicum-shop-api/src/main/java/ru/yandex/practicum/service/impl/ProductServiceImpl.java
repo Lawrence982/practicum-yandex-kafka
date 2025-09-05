@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
         log.info("Sending product: {}", product);
 
         ProducerRecord<String, Product> record =
-                new ProducerRecord<>(productTopicName, product.getId(), converter.toAvroProduct(product));
+                new ProducerRecord<>(productTopicName, product.getProductId(), converter.toAvro(product));
 
         kafkaTemplate.send(record).whenComplete((res, ex) -> {
             if (ex != null) {

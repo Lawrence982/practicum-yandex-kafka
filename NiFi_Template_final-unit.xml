@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
     <description></description>
-    <groupId>0ee0761a-0199-1000-105a-17ba440efb9f</groupId>
+    <groupId>156e7cb4-0199-1000-7efc-3fe2de05c1cf</groupId>
     <name>final-unit</name>
     <snippet>
         <connections>
-            <id>4734e3c9-8038-361e-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>7490af7e-6f37-38df-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>b86df4cd-0d2a-362d-0000-000000000000</groupId>
-                <id>90847a88-bfb7-3a00-0000-000000000000</id>
+                <groupId>e128d53d-ee16-35b9-0000-000000000000</groupId>
+                <id>33ad5be1-62b6-3439-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -23,110 +23,233 @@
             <name></name>
             <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>b86df4cd-0d2a-362d-0000-000000000000</groupId>
-                <id>f6d3267c-f309-3372-0000-000000000000</id>
+                <groupId>e128d53d-ee16-35b9-0000-000000000000</groupId>
+                <id>5969624e-41e1-3656-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <controllerServices>
-            <id>1a877e85-459d-31db-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>1a1d2323-131a-3e47-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <bulletinLevel>WARN</bulletinLevel>
             <bundle>
-                <artifact>nifi-ssl-context-service-nar</artifact>
+                <artifact>nifi-record-serialization-services-nar</artifact>
                 <group>org.apache.nifi</group>
                 <version>1.21.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
                 <entry>
-                    <key>Keystore Filename</key>
+                    <key>schema-access-strategy</key>
                     <value>
-                        <name>Keystore Filename</name>
+                        <name>schema-access-strategy</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>Keystore Password</key>
+                    <key>schema-registry</key>
                     <value>
-                        <name>Keystore Password</name>
+                        <dependencies>
+                            <dependentValues>confluent-encoded</dependentValues>
+                            <dependentValues>schema-name</dependentValues>
+                            <dependentValues>hwx-schema-ref-attributes</dependentValues>
+                            <dependentValues>hwx-content-encoded-schema</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <identifiesControllerService>org.apache.nifi.schemaregistry.services.SchemaRegistry</identifiesControllerService>
+                        <name>schema-registry</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>key-password</key>
+                    <key>schema-name</key>
                     <value>
-                        <name>key-password</name>
+                        <dependencies>
+                            <dependentValues>schema-name</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-name</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>Keystore Type</key>
+                    <key>schema-version</key>
                     <value>
-                        <name>Keystore Type</name>
+                        <dependencies>
+                            <dependentValues>schema-name</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-version</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>Truststore Filename</key>
+                    <key>schema-branch</key>
                     <value>
-                        <name>Truststore Filename</name>
+                        <dependencies>
+                            <dependentValues>schema-name</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-branch</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>Truststore Password</key>
+                    <key>schema-text</key>
                     <value>
-                        <name>Truststore Password</name>
+                        <dependencies>
+                            <dependentValues>schema-text-property</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-text</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>Truststore Type</key>
+                    <key>cache-size</key>
                     <value>
-                        <name>Truststore Type</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>SSL Protocol</key>
-                    <value>
-                        <name>SSL Protocol</name>
+                        <name>cache-size</name>
                     </value>
                 </entry>
             </descriptors>
-            <name>StandardSSLContextService</name>
+            <name>AvroReader</name>
             <persistsState>false</persistsState>
             <properties>
                 <entry>
-                    <key>Keystore Filename</key>
+                    <key>schema-access-strategy</key>
+                    <value>confluent-encoded</value>
                 </entry>
                 <entry>
-                    <key>Keystore Password</key>
+                    <key>schema-registry</key>
+                    <value>4f220065-0e45-366b-0000-000000000000</value>
                 </entry>
                 <entry>
-                    <key>key-password</key>
+                    <key>schema-name</key>
+                    <value>${schema.name}</value>
                 </entry>
                 <entry>
-                    <key>Keystore Type</key>
+                    <key>schema-version</key>
                 </entry>
                 <entry>
-                    <key>Truststore Filename</key>
-                    <value>/opt/yandex-kafka/security/kafka.truststore.jks</value>
+                    <key>schema-branch</key>
                 </entry>
                 <entry>
-                    <key>Truststore Password</key>
-                    <value>kafka-pass</value>
+                    <key>schema-text</key>
+                    <value>${avro.schema}</value>
                 </entry>
                 <entry>
-                    <key>Truststore Type</key>
-                    <value>JKS</value>
-                </entry>
-                <entry>
-                    <key>SSL Protocol</key>
-                    <value>TLS</value>
+                    <key>cache-size</key>
+                    <value>1000</value>
                 </entry>
             </properties>
             <state>ENABLED</state>
-            <type>org.apache.nifi.ssl.StandardSSLContextService</type>
+            <type>org.apache.nifi.avro.AvroReader</type>
         </controllerServices>
         <controllerServices>
-            <id>381c5f43-5349-329a-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>4f220065-0e45-366b-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
+            <bulletinLevel>WARN</bulletinLevel>
+            <bundle>
+                <artifact>nifi-confluent-platform-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.21.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>url</key>
+                    <value>
+                        <name>url</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>ssl-context</key>
+                    <value>
+                        <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+                        <name>ssl-context</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>timeout</key>
+                    <value>
+                        <name>timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>cache-size</key>
+                    <value>
+                        <name>cache-size</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>cache-expiration</key>
+                    <value>
+                        <name>cache-expiration</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>authentication-type</key>
+                    <value>
+                        <name>authentication-type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>username</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authentication-type</propertyName>
+                        </dependencies>
+                        <name>username</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>password</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authentication-type</propertyName>
+                        </dependencies>
+                        <name>password</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>ConfluentSchemaRegistry</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>url</key>
+                    <value>http://schema-registry:8081</value>
+                </entry>
+                <entry>
+                    <key>ssl-context</key>
+                </entry>
+                <entry>
+                    <key>timeout</key>
+                    <value>30 secs</value>
+                </entry>
+                <entry>
+                    <key>cache-size</key>
+                    <value>1000</value>
+                </entry>
+                <entry>
+                    <key>cache-expiration</key>
+                    <value>1 hour</value>
+                </entry>
+                <entry>
+                    <key>authentication-type</key>
+                    <value>NONE</value>
+                </entry>
+                <entry>
+                    <key>username</key>
+                    <value>admin</value>
+                </entry>
+                <entry>
+                    <key>password</key>
+                    <value>admin-secret</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>org.apache.nifi.confluent.schemaregistry.ConfluentSchemaRegistry</type>
+        </controllerServices>
+        <controllerServices>
+            <id>b9f19707-36e2-302f-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <bulletinLevel>WARN</bulletinLevel>
             <bundle>
                 <artifact>nifi-record-serialization-services-nar</artifact>
@@ -341,227 +464,103 @@
             <type>org.apache.nifi.json.JsonRecordSetWriter</type>
         </controllerServices>
         <controllerServices>
-            <id>7ff9fc51-ad54-38ae-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>c5ceb84e-3a46-3c3b-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <bulletinLevel>WARN</bulletinLevel>
             <bundle>
-                <artifact>nifi-record-serialization-services-nar</artifact>
+                <artifact>nifi-ssl-context-service-nar</artifact>
                 <group>org.apache.nifi</group>
                 <version>1.21.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
                 <entry>
-                    <key>schema-access-strategy</key>
+                    <key>Keystore Filename</key>
                     <value>
-                        <name>schema-access-strategy</name>
+                        <name>Keystore Filename</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-registry</key>
+                    <key>Keystore Password</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>confluent-encoded</dependentValues>
-                            <dependentValues>schema-name</dependentValues>
-                            <dependentValues>hwx-schema-ref-attributes</dependentValues>
-                            <dependentValues>hwx-content-encoded-schema</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <identifiesControllerService>org.apache.nifi.schemaregistry.services.SchemaRegistry</identifiesControllerService>
-                        <name>schema-registry</name>
+                        <name>Keystore Password</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-name</key>
+                    <key>key-password</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>schema-name</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <name>schema-name</name>
+                        <name>key-password</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-version</key>
+                    <key>Keystore Type</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>schema-name</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <name>schema-version</name>
+                        <name>Keystore Type</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-branch</key>
+                    <key>Truststore Filename</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>schema-name</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <name>schema-branch</name>
+                        <name>Truststore Filename</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-text</key>
+                    <key>Truststore Password</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>schema-text-property</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <name>schema-text</name>
+                        <name>Truststore Password</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>cache-size</key>
+                    <key>Truststore Type</key>
                     <value>
-                        <name>cache-size</name>
+                        <name>Truststore Type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>
+                        <name>SSL Protocol</name>
                     </value>
                 </entry>
             </descriptors>
-            <name>AvroReader</name>
+            <name>StandardSSLContextService</name>
             <persistsState>false</persistsState>
             <properties>
                 <entry>
-                    <key>schema-access-strategy</key>
-                    <value>confluent-encoded</value>
+                    <key>Keystore Filename</key>
                 </entry>
                 <entry>
-                    <key>schema-registry</key>
-                    <value>e475a251-3493-3963-0000-000000000000</value>
+                    <key>Keystore Password</key>
                 </entry>
                 <entry>
-                    <key>schema-name</key>
-                    <value>${schema.name}</value>
+                    <key>key-password</key>
                 </entry>
                 <entry>
-                    <key>schema-version</key>
+                    <key>Keystore Type</key>
                 </entry>
                 <entry>
-                    <key>schema-branch</key>
+                    <key>Truststore Filename</key>
+                    <value>/opt/yandex-kafka/security/kafka.truststore.jks</value>
                 </entry>
                 <entry>
-                    <key>schema-text</key>
-                    <value>${avro.schema}</value>
+                    <key>Truststore Password</key>
+                    <value>kafka-pass</value>
                 </entry>
                 <entry>
-                    <key>cache-size</key>
-                    <value>1000</value>
+                    <key>Truststore Type</key>
+                    <value>JKS</value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>TLS</value>
                 </entry>
             </properties>
             <state>ENABLED</state>
-            <type>org.apache.nifi.avro.AvroReader</type>
-        </controllerServices>
-        <controllerServices>
-            <id>e475a251-3493-3963-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
-            <bulletinLevel>WARN</bulletinLevel>
-            <bundle>
-                <artifact>nifi-confluent-platform-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.21.0</version>
-            </bundle>
-            <comments></comments>
-            <descriptors>
-                <entry>
-                    <key>url</key>
-                    <value>
-                        <name>url</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>ssl-context</key>
-                    <value>
-                        <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-                        <name>ssl-context</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>timeout</key>
-                    <value>
-                        <name>timeout</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>cache-size</key>
-                    <value>
-                        <name>cache-size</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>cache-expiration</key>
-                    <value>
-                        <name>cache-expiration</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>authentication-type</key>
-                    <value>
-                        <name>authentication-type</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>username</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>BASIC</dependentValues>
-                            <propertyName>authentication-type</propertyName>
-                        </dependencies>
-                        <name>username</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>password</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>BASIC</dependentValues>
-                            <propertyName>authentication-type</propertyName>
-                        </dependencies>
-                        <name>password</name>
-                    </value>
-                </entry>
-            </descriptors>
-            <name>ConfluentSchemaRegistry</name>
-            <persistsState>false</persistsState>
-            <properties>
-                <entry>
-                    <key>url</key>
-                    <value>https://schema-registry:443</value>
-                </entry>
-                <entry>
-                    <key>ssl-context</key>
-                    <value>1a877e85-459d-31db-0000-000000000000</value>
-                </entry>
-                <entry>
-                    <key>timeout</key>
-                    <value>30 secs</value>
-                </entry>
-                <entry>
-                    <key>cache-size</key>
-                    <value>1000</value>
-                </entry>
-                <entry>
-                    <key>cache-expiration</key>
-                    <value>1 hour</value>
-                </entry>
-                <entry>
-                    <key>authentication-type</key>
-                    <value>NONE</value>
-                </entry>
-                <entry>
-                    <key>username</key>
-                    <value>admin</value>
-                </entry>
-                <entry>
-                    <key>password</key>
-                    <value>admin-secret</value>
-                </entry>
-            </properties>
-            <state>ENABLED</state>
-            <type>org.apache.nifi.confluent.schemaregistry.ConfluentSchemaRegistry</type>
+            <type>org.apache.nifi.ssl.StandardSSLContextService</type>
         </controllerServices>
         <processors>
-            <id>90847a88-bfb7-3a00-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>33ad5be1-62b6-3439-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <position>
                 <x>240.0</x>
                 <y>464.0</y>
@@ -782,13 +781,13 @@
                 <name>success</name>
                 <retry>false</retry>
             </relationships>
-            <state>ENABLED</state>
+            <state>RUNNING</state>
             <style/>
             <type>org.apache.nifi.processors.hadoop.PutHDFS</type>
         </processors>
         <processors>
-            <id>f6d3267c-f309-3372-0000-000000000000</id>
-            <parentGroupId>b86df4cd-0d2a-362d-0000-000000000000</parentGroupId>
+            <id>5969624e-41e1-3656-0000-000000000000</id>
+            <parentGroupId>e128d53d-ee16-35b9-0000-000000000000</parentGroupId>
             <position>
                 <x>0.0</x>
                 <y>0.0</y>
@@ -883,10 +882,10 @@
                         <key>sasl.username</key>
                         <value>
                             <dependencies>
-<dependentValues>PLAIN</dependentValues>
-<dependentValues>SCRAM-SHA-512</dependentValues>
-<dependentValues>SCRAM-SHA-256</dependentValues>
-<propertyName>sasl.mechanism</propertyName>
+                                <dependentValues>PLAIN</dependentValues>
+                                <dependentValues>SCRAM-SHA-512</dependentValues>
+                                <dependentValues>SCRAM-SHA-256</dependentValues>
+                                <propertyName>sasl.mechanism</propertyName>
                             </dependencies>
                             <name>sasl.username</name>
                         </value>
@@ -895,10 +894,10 @@
                         <key>sasl.password</key>
                         <value>
                             <dependencies>
-<dependentValues>PLAIN</dependentValues>
-<dependentValues>SCRAM-SHA-512</dependentValues>
-<dependentValues>SCRAM-SHA-256</dependentValues>
-<propertyName>sasl.mechanism</propertyName>
+                                <dependentValues>PLAIN</dependentValues>
+                                <dependentValues>SCRAM-SHA-512</dependentValues>
+                                <dependentValues>SCRAM-SHA-256</dependentValues>
+                                <propertyName>sasl.mechanism</propertyName>
                             </dependencies>
                             <name>sasl.password</name>
                         </value>
@@ -907,9 +906,9 @@
                         <key>sasl.token.auth</key>
                         <value>
                             <dependencies>
-<dependentValues>SCRAM-SHA-512</dependentValues>
-<dependentValues>SCRAM-SHA-256</dependentValues>
-<propertyName>sasl.mechanism</propertyName>
+                                <dependentValues>SCRAM-SHA-512</dependentValues>
+                                <dependentValues>SCRAM-SHA-256</dependentValues>
+                                <propertyName>sasl.mechanism</propertyName>
                             </dependencies>
                             <name>sasl.token.auth</name>
                         </value>
@@ -918,8 +917,8 @@
                         <key>aws.profile.name</key>
                         <value>
                             <dependencies>
-<dependentValues>AWS_MSK_IAM</dependentValues>
-<propertyName>sasl.mechanism</propertyName>
+                                <dependentValues>AWS_MSK_IAM</dependentValues>
+                                <propertyName>sasl.mechanism</propertyName>
                             </dependencies>
                             <name>aws.profile.name</name>
                         </value>
@@ -993,7 +992,7 @@
                 <properties>
                     <entry>
                         <key>bootstrap.servers</key>
-                        <value>kafka-1-0:9093</value>
+                        <value>kafka-1-0:9092</value>
                     </entry>
                     <entry>
                         <key>topic</key>
@@ -1005,11 +1004,11 @@
                     </entry>
                     <entry>
                         <key>record-reader</key>
-                        <value>7ff9fc51-ad54-38ae-0000-000000000000</value>
+                        <value>1a1d2323-131a-3e47-0000-000000000000</value>
                     </entry>
                     <entry>
                         <key>record-writer</key>
-                        <value>381c5f43-5349-329a-0000-000000000000</value>
+                        <value>b9f19707-36e2-302f-0000-000000000000</value>
                     </entry>
                     <entry>
                         <key>honor-transactions</key>
@@ -1052,7 +1051,7 @@
                     </entry>
                     <entry>
                         <key>ssl.context.service</key>
-                        <value>1a877e85-459d-31db-0000-000000000000</value>
+                        <value>c5ceb84e-3a46-3c3b-0000-000000000000</value>
                     </entry>
                     <entry>
                         <key>group.id</key>
@@ -1108,10 +1107,10 @@
                 <name>success</name>
                 <retry>false</retry>
             </relationships>
-            <state>ENABLED</state>
+            <state>RUNNING</state>
             <style/>
             <type>org.apache.nifi.processors.kafka.pubsub.ConsumeKafkaRecord_2_0</type>
         </processors>
     </snippet>
-    <timestamp>09/03/2025 09:45:11 UTC</timestamp>
+    <timestamp>09/04/2025 16:03:36 UTC</timestamp>
 </template>

@@ -2,21 +2,113 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "properties": {
-    "id": {
-      "format": "string",
-      "type": "string",
-      "description": "ID of product"
+    "productId": {
+      "type": "string"
     },
     "name": {
-      "type": "string",
-      "description": "Name of product"
+      "type": "string"
     },
     "sku": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "price": {
+      "$ref": "#/definitions/price"
+    },
+    "category": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "stock": {
+      "$ref": "#/definitions/stock"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/image"
+      }
+    },
+    "specifications": {
+      "$ref": "#/definitions/specification"
+    },
+    "createdAt": {
       "type": "string",
-      "description": "Sku of product"
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "index": {
+      "type": "string"
+    },
+    "storeId": {
+      "type": "string"
     }
   },
   "required": ["id", "name", "sku"],
   "title": "Product",
-  "type": "object"
+  "type": "object",
+  "definitions": {
+    "price": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
+    },
+    "specification": {
+      "type": "object",
+      "properties": {
+        "weight": {
+          "type": "string"
+        },
+        "dimensions": {
+          "type": "string"
+        },
+        "batteryLife": {
+          "type": "string"
+        },
+        "waterResistance": {
+          "type": "string"
+        }
+      }
+    },
+    "stock": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "integer"
+        },
+        "reserved": {
+          "type": "integer"
+        }
+      }
+    }
+  }
 }
