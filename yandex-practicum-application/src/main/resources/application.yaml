@@ -57,3 +57,23 @@ topic:
     replicas: 2
     min-insync-replicas: 2
 
+kafka-connect:
+  url:
+    base: http://kafka-connect:8083
+    config: ${kafka-connect.url.base}/connectors/es-connector/config
+    status: ${kafka-connect.url.base}/connectors/es-connector/status
+
+connectors:
+  es-connector:
+    properties:
+      connector.class: io.confluent.connect.elasticsearch.ElasticsearchSinkConnector # определяет полное имя класса коннектора, который мы хотим запустить
+      task.max: 2 # максимальное количество задач, которые могут быть запущены для этого коннектора
+      topics: filtered-products-topic
+      connection.url: http://elasticsearch:9200
+      type.name: _doc
+      value.converter: io.confluent.connect.avro.AvroConverter
+      value.converter.schema.registry.url: http://schema-registry:8081
+      value.converter.schemas.enable: true
+      schema.ignore: false
+      key.ignore: true
+

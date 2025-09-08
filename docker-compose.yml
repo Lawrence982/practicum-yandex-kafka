@@ -365,9 +365,7 @@ services:
       app:
         condition: service_started
     environment:
-      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_GROUP_ID: kafka-mm2-connect
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.7.1.jar
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
@@ -417,8 +415,6 @@ services:
         condition: service_healthy
       kafka-2:
         condition: service_healthy
-      app:
-        condition: service_started
     volumes:
       - ./confluent-hub-components/:/usr/share/confluent-hub-components
       - ./creds/cluster-0/kafka-0-creds/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
@@ -491,6 +487,8 @@ services:
       kafka-1:
         condition: service_healthy
       kafka-2:
+        condition: service_healthy
+      kafka-connect:
         condition: service_healthy
     ports:
       - "8085:8080"
