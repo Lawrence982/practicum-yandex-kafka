@@ -4,10 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.model.avro.Product;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
 @Service
 public class ProductAvroConverter implements AvroConverter<Product, ru.yandex.practicum.model.Product> {
 
@@ -40,8 +36,8 @@ public class ProductAvroConverter implements AvroConverter<Product, ru.yandex.pr
                 .setTags(product.getTags())
                 .setImages(imageAvroConverter.toAvro(product.getImages()))
                 .setSpecifications(specificationAvroConverter.toAvro(product.getSpecifications()))
-                .setCreatedAt(toInstant(product.getCreatedAt()))
-                .setUpdatedAt(toInstant(product.getUpdatedAt()))
+                .setCreatedAt(product.getCreatedAt())
+                .setUpdatedAt(product.getUpdatedAt())
                 .setIndex(product.getIndex())
                 .setStoreId(product.getStoreId())
                 .build();
@@ -64,18 +60,10 @@ public class ProductAvroConverter implements AvroConverter<Product, ru.yandex.pr
                 .tags(product.getTags())
                 .images(imageAvroConverter.fromAvro(product.getImages()))
                 .specifications(specificationAvroConverter.fromAvro(product.getSpecifications()))
-                .createdAt(toLocalDateTime(product.getCreatedAt()))
-                .updatedAt(toLocalDateTime(product.getUpdatedAt()))
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .index(product.getIndex())
                 .storeId(product.getStoreId())
                 .build();
-    }
-
-    private Instant toInstant(LocalDateTime dateTime) {
-        return dateTime == null ? null : dateTime.toInstant(ZoneOffset.UTC);
-    }
-
-    private LocalDateTime toLocalDateTime(Instant instant) {
-        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }
