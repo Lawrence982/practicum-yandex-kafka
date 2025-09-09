@@ -57,7 +57,7 @@ topic:
     replicas: 2
     min-insync-replicas: 2
   customer-requests:
-    name: filtered-products-topic
+    name: customer-requests-topic
     partitions: 3
     replicas: 2
     min-insync-replicas: 2

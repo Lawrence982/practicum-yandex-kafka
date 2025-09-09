@@ -996,7 +996,7 @@
                     </entry>
                     <entry>
                         <key>topic</key>
-                        <value>filtered-products-topic</value>
+                        <value>customer-requests-topic</value>
                     </entry>
                     <entry>
                         <key>topic_type</key>
