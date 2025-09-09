@@ -56,6 +56,11 @@ topic:
     partitions: 3
     replicas: 2
     min-insync-replicas: 2
+  customer-requests:
+    name: filtered-products-topic
+    partitions: 3
+    replicas: 2
+    min-insync-replicas: 2
 
 kafka-connect:
   url:

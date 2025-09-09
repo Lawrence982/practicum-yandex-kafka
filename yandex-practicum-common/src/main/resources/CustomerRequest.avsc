@@ -1,0 +1,33 @@
+{
+  "namespace": "ru.yandex.practicum.model.avro",
+  "type": "record",
+  "name": "CustomerRequest",
+  "fields": [
+    {"name": "customerId", "type": "string"},
+    {
+      "name": "products",
+      "type": {
+        "type": "array",
+        "items": {
+          "namespace": "ru.yandex.practicum.model.avro",
+          "type": "record",
+          "name": "ProductInfo",
+          "fields": [
+            {
+              "name": "productId",
+              "type": "string"
+            },
+            {
+              "name": "productName",
+              "type": "string"
+            },
+            {
+              "name": "category",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

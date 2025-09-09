@@ -11,6 +11,7 @@ public class TopicsProperties {
 
     private Topic products;
     private Topic filteredProducts;
+    private Topic customerRequests;
 
     @Getter
     @Setter

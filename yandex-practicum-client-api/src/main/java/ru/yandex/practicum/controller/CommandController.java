@@ -19,9 +19,9 @@ public class CommandController {
     @Autowired
     CommandService commandService;
 
-    @GetMapping("/product-search/{name}")
-    public ResponseEntity<List<Product>> search(@PathVariable String name) {
-        List<Product> products = commandService.searchByName(name);
+    @GetMapping("/product-search/{name}/customerId/{customerId}")
+    public ResponseEntity<List<Product>> search(@PathVariable String name, @PathVariable String customerId) {
+        List<Product> products = commandService.searchByName(name, customerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(products);
     }
 

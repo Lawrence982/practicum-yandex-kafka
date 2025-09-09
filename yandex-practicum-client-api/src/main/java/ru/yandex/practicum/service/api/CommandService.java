@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface CommandService {
 
-    List<Product> searchByName(String name);
+    List<Product> searchByName(String name, String customerId);
 
     List<Product> getProductRecommendations();
 }
