@@ -18,6 +18,9 @@ COPY yandex-practicum-shop-api/src yandex-practicum-shop-api/src
 COPY yandex-practicum-stream-handling/pom.xml yandex-practicum-stream-handling/pom.xml
 COPY yandex-practicum-stream-handling/src yandex-practicum-stream-handling/src
 
+COPY yandex-practicum-analytics/pom.xml yandex-practicum-analytics/pom.xml
+COPY yandex-practicum-analytics/src yandex-practicum-analytics/src
+
 RUN mvn package -DskipTests
 
 #Run stage

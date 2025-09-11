@@ -1,4 +1,8 @@
 spring:
+  data:
+    elasticsearch:
+      client:
+
   application:
     name: yandex-kafka
   kafka:
@@ -82,3 +86,25 @@ connectors:
       schema.ignore: false
       key.ignore: true
 
+app:
+  hdfs:
+    host: hdfs://hadoop-namenode:9000
+    dataPath: ${app.hdfs.host}/usr/local/hadoop/hdfs/datanode
+    checkpointPath: ${app.hdfs.host}/usr/local/hadoop/hdfs/checkpoints
+  spark:
+    appName: customer-product-counters
+    master: spark://spark-master:7077
+    trigger: 30 seconds
+
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

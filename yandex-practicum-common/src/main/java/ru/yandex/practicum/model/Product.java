@@ -3,6 +3,7 @@ package ru.yandex.practicum.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -23,10 +24,13 @@ public class Product {
     @Id
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String id;
+    @NotBlank
     private String productId;
+    @NotBlank
     private String name;
     private String description;
     private Price price;
+    @NotBlank
     private String category;
     private String brand;
     private Stock stock;

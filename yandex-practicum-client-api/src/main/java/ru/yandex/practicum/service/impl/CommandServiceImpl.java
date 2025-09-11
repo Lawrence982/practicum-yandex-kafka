@@ -8,12 +8,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.converter.CustomerRequestAvroConverter;
+import ru.yandex.practicum.model.CustomerStatistics;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.model.avro.CustomerRequest;
+import ru.yandex.practicum.repository.CustomerStatisticsRepository;
 import ru.yandex.practicum.repository.ProductRepository;
 import ru.yandex.practicum.service.api.CommandService;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,8 @@ public class CommandServiceImpl implements CommandService {
     private String customerRequestTopic;
 
     final ProductRepository productRepository;
+
+    final CustomerStatisticsRepository customerStatisticsRepository;
 
     final KafkaTemplate<String, CustomerRequest> kafkaTemplate;
 
@@ -52,7 +58,12 @@ public class CommandServiceImpl implements CommandService {
     }
 
     @Override
-    public List<Product> getProductRecommendations() {
-        return List.of();
+    public List<String> getProductRecommendations(String customerId) {
+        Optional<CustomerStatistics> customerStatistics = customerStatisticsRepository.findById(customerId);
+        return customerStatistics.map(statistics -> statistics.getProducts().values().stream()
+                .sorted(Comparator.comparing(CustomerStatistics.ProductInfo::getCount).reversed())
+                .map(CustomerStatistics.ProductInfo::getProductName)
+                .limit(2)
+                .toList()).orElseGet(List::of);
     }
 }

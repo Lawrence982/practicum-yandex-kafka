@@ -25,9 +25,9 @@ public class CommandController {
         return ResponseEntity.status(HttpStatus.CREATED).body(products);
     }
 
-    @GetMapping("/product-recommendations")
-    public ResponseEntity<List<Product>> getRecommendations() {
-        List<Product> products = commandService.getProductRecommendations();
+    @GetMapping("/product-recommendations/customerId/{customerId}")
+    public ResponseEntity<List<String>> getRecommendations(@PathVariable String customerId) {
+        List<String> products = commandService.getProductRecommendations(customerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(products);
     }
 

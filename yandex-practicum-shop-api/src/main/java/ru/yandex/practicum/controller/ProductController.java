@@ -2,6 +2,7 @@ package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +20,13 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Void> sendProduct(@RequestBody Product product) {
+    public ResponseEntity<Void> sendProduct(@RequestBody @Validated Product product) {
         productService.sendProduct(product);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<Void> sendProductBatch(@RequestBody List<Product> products) {
+    public ResponseEntity<Void> sendProductBatch(@RequestBody @Validated List<Product> products) {
         productService.sendProductBatch(products);
         return ResponseEntity.ok().build();
     }

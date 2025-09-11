@@ -21,6 +21,7 @@
         <module>yandex-practicum-shop-api</module>
         <module>yandex-practicum-stream-handling</module>
         <module>yandex-practicum-client-api</module>
+        <module>yandex-practicum-analytics</module>
     </modules>
 
     <properties>
@@ -30,6 +31,7 @@
         <lombok-version>1.18.38</lombok-version>
         <kafka-avro-version>7.9.1</kafka-avro-version>
         <avro-version>1.11.4</avro-version>
+        <spark-version>3.5.1</spark-version>
     </properties>
 
     <repositories>
@@ -66,6 +68,12 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>ru.yandex.practicum</groupId>
+                <artifactId>yandex-practicum-analytics</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/io.confluent/kafka-schema-registry-client -->
             <dependency>
                 <groupId>io.confluent</groupId>
@@ -98,6 +106,12 @@
                 <version>${lombok-version}</version>
                 <scope>provided</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_2.12</artifactId>
+                <version>${spark-version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -108,7 +122,7 @@
                 <plugin>
                     <groupId>org.apache.avro</groupId>
                     <artifactId>avro-maven-plugin</artifactId>
-                    <version>1.11.4</version>
+                    <version>${avro-version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.springframework.boot</groupId>

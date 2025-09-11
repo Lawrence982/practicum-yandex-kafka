@@ -8,5 +8,5 @@ public interface CommandService {
 
     List<Product> searchByName(String name, String customerId);
 
-    List<Product> getProductRecommendations();
+    List<String> getProductRecommendations(String customerId);
 }
