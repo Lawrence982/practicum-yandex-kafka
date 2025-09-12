@@ -1,0 +1,282 @@
+{
+	"info": {
+		"_postman_id": "03aeff5f-0114-4afd-8bd1-a413074b63d9",
+		"name": "Kafka Final Unit",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29835883"
+	},
+	"item": [
+		{
+			"name": "SHOP API",
+			"item": [
+				{
+					"name": "Send single product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\": \"1\",\r\n    \"name\": \"Умные часы ZZZ\",\r\n    \"description\": \"Умные часы с функцией мониторинга здоровья, GPS и уведомлениями.\",\r\n    \"price\": {\r\n        \"amount\": 4999.99,\r\n        \"currency\": \"RUB\"\r\n    },\r\n    \"category\": \"Электроника\",\r\n    \"brand\": \"ZZZ\",\r\n    \"stock\": {\r\n        \"available\": 150,\r\n        \"reserved\": 20\r\n    },\r\n    \"sku\": \"ZZZ-12345\",\r\n    \"tags\": [\r\n        \"умные часы\",\r\n        \"гаджеты\",\r\n        \"технологии\"\r\n    ],\r\n    \"images\": [\r\n        {\r\n            \"url\": \"https://example.com/images/product1.jpg\",\r\n            \"alt\": \"Умные часы ZZZ - вид спереди\"\r\n        },\r\n        {\r\n            \"url\": \"https://example.com/images/product1_side.jpg\",\r\n            \"alt\": \"Умные часы ZZZ - вид сбоку\"\r\n        }\r\n    ],\r\n    \"specifications\": {\r\n        \"weight\": \"50g\",\r\n        \"dimensions\": \"42mm x 36mm x 10mm\",\r\n        \"battery_life\": \"24 hours\",\r\n        \"water_resistance\": \"IP68\"\r\n    },\r\n    \"created_at\": \"2023-10-01T12:00:00Z\",\r\n    \"updated_at\": \"2023-10-10T15:30:00Z\",\r\n    \"index\": \"products\",\r\n    \"store_id\": \"store_001\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8085/product",
+							"host": [
+								"localhost"
+							],
+							"port": "8085",
+							"path": [
+								"product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send batch products",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"product_id\": \"1\",\r\n        \"name\": \"Умные часы ZZZ\",\r\n        \"description\": \"Умные часы с функцией мониторинга здоровья, GPS и уведомлениями.\",\r\n        \"price\": {\r\n            \"amount\": 4999.99,\r\n            \"currency\": \"RUB\"\r\n        },\r\n        \"category\": \"Электроника\",\r\n        \"brand\": \"ZZZ\",\r\n        \"stock\": {\r\n            \"available\": 150,\r\n            \"reserved\": 20\r\n        },\r\n        \"sku\": \"ZZZ-12345\",\r\n        \"tags\": [\r\n            \"умные часы\",\r\n            \"гаджеты\",\r\n            \"технологии\"\r\n        ],\r\n        \"images\": [\r\n            {\r\n                \"url\": \"https://example.com/images/product1.jpg\",\r\n                \"alt\": \"Умные часы XYZ - вид спереди\"\r\n            },\r\n            {\r\n                \"url\": \"https://example.com/images/product1_side.jpg\",\r\n                \"alt\": \"Умные часы XYZ - вид сбоку\"\r\n            }\r\n        ],\r\n        \"specifications\": {\r\n            \"weight\": \"50g\",\r\n            \"dimensions\": \"42mm x 36mm x 10mm\",\r\n            \"battery_life\": \"24 hours\",\r\n            \"water_resistance\": \"IP68\"\r\n        },\r\n        \"created_at\": \"2023-10-01T12:00:00Z\",\r\n        \"updated_at\": \"2023-10-10T15:30:00Z\",\r\n        \"index\": \"products\",\r\n        \"store_id\": \"store_001\"\r\n    },\r\n    {\r\n        \"product_id\": \"2\",\r\n        \"name\": \"Умные часы YYY\",\r\n        \"description\": \"Умные часы с функцией мониторинга здоровья, GPS и уведомлениями.\",\r\n        \"price\": {\r\n            \"amount\": 5999.99,\r\n            \"currency\": \"RUB\"\r\n        },\r\n        \"category\": \"Электроника\",\r\n        \"brand\": \"YYY\",\r\n        \"stock\": {\r\n            \"available\": 50,\r\n            \"reserved\": 10\r\n        },\r\n        \"sku\": \"YYY-12345\",\r\n        \"tags\": [\r\n            \"умные часы\",\r\n            \"гаджеты\",\r\n            \"технологии\"\r\n        ],\r\n        \"images\": [\r\n            {\r\n                \"url\": \"https://example.com/images/product1.jpg\",\r\n                \"alt\": \"Умные часы YYY - вид спереди\"\r\n            },\r\n            {\r\n                \"url\": \"https://example.com/images/product1_side.jpg\",\r\n                \"alt\": \"Умные часы YYY - вид сбоку\"\r\n            }\r\n        ],\r\n        \"specifications\": {\r\n            \"weight\": \"50g\",\r\n            \"dimensions\": \"42mm x 36mm x 10mm\",\r\n            \"battery_life\": \"24 hours\",\r\n            \"water_resistance\": \"IP68\"\r\n        },\r\n        \"created_at\": \"2023-10-01T12:00:00Z\",\r\n        \"updated_at\": \"2023-10-10T15:30:00Z\",\r\n        \"index\": \"products\",\r\n        \"store_id\": \"store_001\"\r\n    },\r\n    {\r\n        \"product_id\": \"3\",\r\n        \"name\": \"Умные часы CCC\",\r\n        \"description\": \"Умные часы с функцией мониторинга здоровья, GPS и уведомлениями.\",\r\n        \"price\": {\r\n            \"amount\": 9999.99,\r\n            \"currency\": \"RUB\"\r\n        },\r\n        \"category\": \"Электроника\",\r\n        \"brand\": \"CCC\",\r\n        \"stock\": {\r\n            \"available\": 20,\r\n            \"reserved\": 5\r\n        },\r\n        \"sku\": \"CCC-12345\",\r\n        \"tags\": [\r\n            \"умные часы\",\r\n            \"гаджеты\",\r\n            \"технологии\"\r\n        ],\r\n        \"images\": [\r\n            {\r\n                \"url\": \"https://example.com/images/product1.jpg\",\r\n                \"alt\": \"Умные часы CCC - вид спереди\"\r\n            },\r\n            {\r\n                \"url\": \"https://example.com/images/product1_side.jpg\",\r\n                \"alt\": \"Умные часы CCC - вид сбоку\"\r\n            }\r\n        ],\r\n        \"specifications\": {\r\n            \"weight\": \"50g\",\r\n            \"dimensions\": \"42mm x 36mm x 10mm\",\r\n            \"battery_life\": \"24 hours\",\r\n            \"water_resistance\": \"IP68\"\r\n        },\r\n        \"created_at\": \"2023-10-01T12:00:00Z\",\r\n        \"updated_at\": \"2023-10-10T15:30:00Z\",\r\n        \"index\": \"products\",\r\n        \"store_id\": \"store_001\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8085/product/batch",
+							"host": [
+								"localhost"
+							],
+							"port": "8085",
+							"path": [
+								"product",
+								"batch"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forbid SKU",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    \"ZZZ-12345\"\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8085/forbiddenSku",
+							"host": [
+								"localhost"
+							],
+							"port": "8085",
+							"path": [
+								"forbiddenSku"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CLIENT API",
+			"item": [
+				{
+					"name": "Find Products by Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8085/command/product-search/часы/customerId/101",
+							"host": [
+								"localhost"
+							],
+							"port": "8085",
+							"path": [
+								"command",
+								"product-search",
+								"часы",
+								"customerId",
+								"101"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recommendation by Customer ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8085/command/product-recommendations/customerId/101",
+							"host": [
+								"localhost"
+							],
+							"port": "8085",
+							"path": [
+								"command",
+								"product-recommendations",
+								"customerId",
+								"101"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "UTILS API",
+			"item": [
+				{
+					"name": "ES connector status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/connectors/es-connector/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"connectors",
+								"es-connector",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find Products by Name in ES",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": {\r\n        \"match_phrase\": {\r\n            \"name\": {\r\n                \"query\": \"часы\"\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9200/filtered-products-topic/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"filtered-products-topic",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Customer statistics by customer id in ES",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/customer-statistics/_doc/101",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"customer-statistics",
+								"_doc",
+								"101"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find All Customer Statistics in ES",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"query\": {\r\n    \"match_all\": {}\r\n  },\r\n  \"size\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9200/customer-statistics/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"customer-statistics",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Indices in ES",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/_cat/indices?v",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"_cat",
+								"indices"
+							],
+							"query": [
+								{
+									"key": "v",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
