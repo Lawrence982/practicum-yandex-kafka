@@ -8,7 +8,7 @@ receivers:
       - api_url: 'https://api.telegram.org'
         bot_token: '8165963945:AAH_Gr10zsiMkYyDlbaKoF62rQyudXqzIEA'
         chat_id: 392963520
-        parse_mode: ''   # добавьте это, чтобы отключить разметку
+        parse_mode: ''
 
 
 

@@ -41,7 +41,7 @@ scrape_configs:
           - localhost:9090
 
   # Scrape Kafka Connect /metrics
-  - job_name: 'kafka-connect-host'
-    static_configs:
-      - targets: [ 'kafka-connect:9876' ]
+#  - job_name: 'kafka-connect-host'
+#    static_configs:
+#      - targets: [ 'kafka-connect:9876' ]
 
